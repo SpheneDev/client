@@ -29,7 +29,7 @@ public class PopoutProfileUi : WindowMediatorSubscriberBase
 
     public PopoutProfileUi(ILogger<PopoutProfileUi> logger, SpheneMediator mediator, UiSharedService uiBuilder,
         ServerConfigurationManager serverManager, SpheneConfigService SpheneConfigService,
-        SpheneProfileManager spheneProfileManager, PairManager pairManager, PerformanceCollectorService performanceCollectorService) : base(logger, mediator, "###MareSynchronosPopoutProfileUI", performanceCollectorService)
+        SpheneProfileManager spheneProfileManager, PairManager pairManager, PerformanceCollectorService performanceCollectorService) : base(logger, mediator, "###SphenePopoutProfileUI", performanceCollectorService)
     {
         _uiSharedService = uiBuilder;
         _serverManager = serverManager;

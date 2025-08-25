@@ -134,7 +134,7 @@ public sealed partial class ApiController : DisposableMediatorSubscriberBase, IM
             {
                 Logger.LogWarning("Multiple secret keys for current character");
                 _connectionDto = null;
-                Mediator.Publish(new NotificationMessage("Multiple Identical Characters detected", "Your Service configuration has multiple characters with the same name and world set up. Delete the duplicates in the character management to be able to connect to Mare.",
+                Mediator.Publish(new NotificationMessage("Multiple Identical Characters detected", "Your Service configuration has multiple characters with the same name and world set up. Delete the duplicates in the character management to be able to connect to Sphene.",
                     NotificationType.Error));
                 await StopConnectionAsync(ServerState.MultiChara).ConfigureAwait(false);
                 _connectionCancellationTokenSource?.Cancel();
@@ -157,7 +157,7 @@ public sealed partial class ApiController : DisposableMediatorSubscriberBase, IM
             {
                 Logger.LogWarning("Multiple secret keys for current character");
                 _connectionDto = null;
-                Mediator.Publish(new NotificationMessage("Multiple Identical Characters detected", "Your Service configuration has multiple characters with the same name and world set up. Delete the duplicates in the character management to be able to connect to Mare.",
+                Mediator.Publish(new NotificationMessage("Multiple Identical Characters detected", "Your Service configuration has multiple characters with the same name and world set up. Delete the duplicates in the character management to be able to connect to Sphene.",
                     NotificationType.Error));
                 await StopConnectionAsync(ServerState.MultiChara).ConfigureAwait(false);
                 _connectionCancellationTokenSource?.Cancel();
@@ -276,7 +276,7 @@ public sealed partial class ApiController : DisposableMediatorSubscriberBase, IM
                     {
                         Mediator.Publish(new NotificationMessage("Model LOD is enabled",
                             "You have \"Use low-detail models on distant objects (LOD)\" enabled. Having model LOD enabled is known to be a reason to cause " +
-                            "random crashes when loading in or rendering modded pairs. Disabling LOD has a very low performance impact. Disable LOD while using Mare: " +
+                            "random crashes when loading in or rendering modded pairs. Disabling LOD has a very low performance impact. Disable LOD while using Sphene: " +
                             "Go to XIV Menu -> System Configuration -> Graphics Settings and disable the model LOD option.", NotificationType.Warning, TimeSpan.FromSeconds(15)));
                     }
                 }

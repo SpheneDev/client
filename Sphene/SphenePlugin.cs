@@ -155,7 +155,7 @@ public class SphenePlugin : MediatorSubscriberBase, IHostedService
             if (_SpheneConfigService.Current.LogLevel != LogLevel.Information)
             {
                 Mediator.Publish(new NotificationMessage("Abnormal Log Level",
-                    $"Your log level is set to '{_SpheneConfigService.Current.LogLevel}' which is not recommended for normal usage. Set it to '{LogLevel.Information}' in \"Mare Settings -> Debug\" unless instructed otherwise.",
+                    $"Your log level is set to '{_SpheneConfigService.Current.LogLevel}' which is not recommended for normal usage. Set it to '{LogLevel.Information}' in \"Sphene Settings -> Debug\" unless instructed otherwise.",
                     SpheneConfiguration.Models.NotificationType.Error, TimeSpan.FromSeconds(15000)));
             }
 #endif

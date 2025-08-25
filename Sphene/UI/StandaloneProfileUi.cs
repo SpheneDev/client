@@ -27,7 +27,7 @@ public class StandaloneProfileUi : WindowMediatorSubscriberBase
     public StandaloneProfileUi(ILogger<StandaloneProfileUi> logger, SpheneMediator mediator, UiSharedService uiBuilder,
         ServerConfigurationManager serverManager, SpheneProfileManager spheneProfileManager, PairManager pairManager, Pair pair,
         PerformanceCollectorService performanceCollector)
-        : base(logger, mediator, "Sphene Profile of " + pair.UserData.AliasOrUID + "##MareSynchronosStandaloneProfileUI" + pair.UserData.AliasOrUID, performanceCollector)
+        : base(logger, mediator, "Sphene Profile of " + pair.UserData.AliasOrUID + "##SpheneStandaloneProfileUI" + pair.UserData.AliasOrUID, performanceCollector)
     {
         _uiSharedService = uiBuilder;
         _serverManager = serverManager;

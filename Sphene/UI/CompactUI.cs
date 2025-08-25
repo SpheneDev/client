@@ -58,7 +58,7 @@ public class CompactUi : WindowMediatorSubscriberBase
         ServerConfigurationManager serverManager, SpheneMediator mediator, FileUploadManager fileTransferManager,
         TagHandler tagHandler, DrawEntityFactory drawEntityFactory, SelectTagForPairUi selectTagForPairUi, SelectPairForTagUi selectPairForTagUi,
         PerformanceCollectorService performanceCollectorService, IpcManager ipcManager)
-        : base(logger, mediator, "###MareSynchronosMainUI", performanceCollectorService)
+        : base(logger, mediator, "###SpheneMainUI", performanceCollectorService)
     {
         _uiSharedService = uiShared;
         _configService = configService;
@@ -114,11 +114,11 @@ public class CompactUi : WindowMediatorSubscriberBase
 #if DEBUG
         string dev = "Dev Build";
         var ver = Assembly.GetExecutingAssembly().GetName().Version!;
-        WindowName = $"Sphene {dev} ({ver.Major}.{ver.Minor}.{ver.Build})###MareSynchronosMainUI";
+        WindowName = $"Sphene {dev} ({ver.Major}.{ver.Minor}.{ver.Build})###SpheneMainUI";
         Toggle();
 #else
         var ver = Assembly.GetExecutingAssembly().GetName().Version;
-        WindowName = "Sphene " + ver.Major + "." + ver.Minor + "." + ver.Build + "###MareSynchronosMainUI";
+        WindowName = "Sphene " + ver.Major + "." + ver.Minor + "." + ver.Build + "###SpheneMainUI";
 #endif
         Mediator.Subscribe<SwitchToMainUiMessage>(this, (_) => IsOpen = true);
         Mediator.Subscribe<SwitchToIntroUiMessage>(this, (_) => IsOpen = false);
