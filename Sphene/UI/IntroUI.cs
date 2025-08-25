@@ -87,7 +87,7 @@ public partial class IntroUi : WindowMediatorSubscriberBase
 #if !DEBUG
                 _timeoutTask = Task.Run(async () =>
                 {
-                    for (int i = 60; i > 0; i--)
+                    for (int i = 20; i > 0; i--)
                     {
                         _timeoutLabel = $"{Strings.ToS.ButtonWillBeAvailableIn} {i}s";
                         await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
@@ -223,7 +223,7 @@ public partial class IntroUi : WindowMediatorSubscriberBase
             int serverIdx = 0;
             var selectedServer = _serverConfigurationManager.GetServerByIndex(serverIdx);
 
-            using (var node = ImRaii.TreeNode("Advanced Options"))
+            using (var node = ImRaii.TreeNode("Advanced Options", ImGuiTreeNodeFlags.DefaultOpen))
             {
                 if (node)
                 {
@@ -267,9 +267,9 @@ public partial class IntroUi : WindowMediatorSubscriberBase
                 {
                     UiSharedService.ColorTextWrapped("Your secret key must be exactly 64 characters long. Don't enter your Lodestone auth here.", ImGuiColors.DalamudRed);
                 }
-                else if (_secretKey.Length == 64 && !HexRegex().IsMatch(_secretKey))
+                else if (_secretKey.Length == 64 && !Base32Regex().IsMatch(_secretKey))
                 {
-                    UiSharedService.ColorTextWrapped("Your secret key can only contain ABCDEF and the numbers 0-9.", ImGuiColors.DalamudRed);
+                    UiSharedService.ColorTextWrapped("Your secret key can only contain letters A-Z and numbers 2-7.", ImGuiColors.DalamudRed);
                 }
                 else if (_secretKey.Length == 64)
                 {
@@ -360,6 +360,6 @@ public partial class IntroUi : WindowMediatorSubscriberBase
         _tosParagraphs = [Strings.ToS.Paragraph1, Strings.ToS.Paragraph2, Strings.ToS.Paragraph3, Strings.ToS.Paragraph4, Strings.ToS.Paragraph5, Strings.ToS.Paragraph6];
     }
 
-    [GeneratedRegex("^([A-F0-9]{2})+")]
-    private static partial Regex HexRegex();
+    [GeneratedRegex("^[A-Z0-9]{64}$")]
+    private static partial Regex Base32Regex();
 }

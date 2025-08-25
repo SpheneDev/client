@@ -10,7 +10,7 @@ public class ServerConfig : ISpheneConfiguration
 
     public List<ServerStorage> ServerStorage { get; set; } = new()
     {
-        { new ServerStorage() { ServerName = ApiController.MainServer, ServerUri = ApiController.MainServiceUri, UseOAuth2 = true } },
+        { new ServerStorage() { ServerName = ApiController.MainServer, ServerUri = ApiController.MainServiceUri, UseOAuth2 = false } },
     };
 
     public bool SendCensusData { get; set; } = false;
