@@ -193,7 +193,7 @@ public sealed class CharaDataFileHandler : IDisposable
         Dictionary<string, string> gamePathToFilePath = new(StringComparer.Ordinal);
         foreach (var fileData in charaFileHeader.CharaFileData.Files)
         {
-            var fileName = Path.Combine(_fileCacheManager.CacheFolder, "mare_" + _globalFileCounter++ + ".tmp");
+            var fileName = Path.Combine(_fileCacheManager.CacheFolder, "sphene_" + _globalFileCounter++ + ".tmp");
             extractedFiles.Add(fileName);
             var length = fileData.Length;
             var bufferSize = length;

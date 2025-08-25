@@ -39,8 +39,8 @@ public partial class UiSharedService : DisposableMediatorSubscriberBase
                                            ImGuiWindowFlags.NoScrollWithMouse;
 
     public readonly FileDialogManager FileDialogManager;
-    private const string _notesEnd = "##MARE_SYNCHRONOS_USER_NOTES_END##";
-    private const string _notesStart = "##MARE_SYNCHRONOS_USER_NOTES_START##";
+    private const string _notesEnd = "##SPHENE_USER_NOTES_END##";
+    private const string _notesStart = "##SPHENE_USER_NOTES_START##";
     private readonly ApiController _apiController;
     private readonly CacheMonitor _cacheMonitor;
     private readonly SpheneConfigService _configService;
