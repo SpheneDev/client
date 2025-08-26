@@ -373,8 +373,8 @@ public class CompactUi : WindowMediatorSubscriberBase
             var userCount = _apiController.OnlineUsers;
             var shardInfo = _apiController.ServerInfo?.ShardName ?? "Unknown";
             
-            ImGui.Text($"Users Online: {userCount}");
-            ImGui.Text($"Shard: {shardInfo}");
+            // ImGui.Text($"Users Online: {userCount}");
+            // ImGui.Text($"Shard: {shardInfo}");
         }
     }
 
