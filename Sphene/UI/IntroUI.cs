@@ -70,15 +70,16 @@ public partial class IntroUi : WindowMediatorSubscriberBase
 
         if (!_configService.Current.AcceptedAgreement && !_readFirstPage)
         {
-            _uiShared.BigText("Welcome to Sphene");
+            _uiShared.BigText("Welcome to the Sphene Network");
             ImGui.Separator();
-            UiSharedService.TextWrapped("Sphene is a plugin that will replicate your full current character state including all Penumbra mods to other paired Sphene users. " +
-                              "Note that you will have to have Penumbra as well as Glamourer installed to use this plugin.");
-            UiSharedService.TextWrapped("We will have to setup a few things first before you can start using this plugin. Click on next to continue.");
+            UiSharedService.TextWrapped("The Sphene Network allows you to synchronize your complete appearance and glamour with other connected souls across the realm. " +
+                              "Through the power of Living Memory, your character's essence can be shared with trusted companions. " +
+                              "Note that you will need Penumbra and Glamourer to channel this ancient technology.");
+            UiSharedService.TextWrapped("Before you can access the Network's capabilities, we must establish the proper connections. Click next to begin the initialization sequence.");
 
-            UiSharedService.ColorTextWrapped("Note: Any modifications you have applied through anything but Penumbra cannot be shared and your character state on other clients " +
-                                 "might look broken because of this or others players mods might not apply on your end altogether. " +
-                                 "If you want to use this plugin you will have to move your mods to Penumbra.", ImGuiColors.DalamudYellow);
+            UiSharedService.ColorTextWrapped("Caution: Only modifications channeled through Penumbra can be transmitted via the Network. " +
+                                 "Appearance data from other sources may cause synchronization errors or incomplete transfers. " +
+                                 "To ensure perfect harmony with the Network, all modifications must flow through Penumbra's systems.", ImGuiColors.DalamudYellow);
             if (!_uiShared.DrawOtherPluginState()) return;
             ImGui.Separator();
             if (ImGui.Button("Next##toAgreement"))
@@ -157,7 +158,7 @@ public partial class IntroUi : WindowMediatorSubscriberBase
                      || !Directory.Exists(_configService.Current.CacheFolder)))
         {
             using (_uiShared.UidFont.Push())
-                ImGui.TextUnformatted("File Storage Setup");
+                ImGui.TextUnformatted("Memory Archive Configuration");
 
             ImGui.Separator();
 
@@ -167,13 +168,13 @@ public partial class IntroUi : WindowMediatorSubscriberBase
             }
             else
             {
-                UiSharedService.TextWrapped("To not unnecessary download files already present on your computer, Sphene will have to scan your Penumbra mod directory. " +
-                           "Additionally, a local storage folder must be set where Sphene will download other character files to. " +
-                                     "Once the storage folder is set and the scan complete, this page will automatically forward to registration at a service.");
-                UiSharedService.TextWrapped("Note: The initial scan, depending on the amount of mods you have, might take a while. Please wait until it is completed.");
-                UiSharedService.ColorTextWrapped("Warning: once past this step you should not delete the FileCache.csv of Sphene in the Plugin Configurations folder of Dalamud. " +
-                                          "Otherwise on the next launch a full re-scan of the file cache database will be initiated.", ImGuiColors.DalamudYellow);
-                UiSharedService.ColorTextWrapped("Warning: if the scan is hanging and does nothing for a long time, chances are high your Penumbra folder is not set up properly.", ImGuiColors.DalamudYellow);
+                UiSharedService.TextWrapped("To optimize data transmission efficiency, the Network must catalog your existing Penumbra modifications. " +
+                           "Additionally, a local archive must be established where the Network will store synchronized character data. " +
+                                     "Once the archive is configured and cataloging complete, you will be guided to Network registration.");
+                UiSharedService.TextWrapped("Note: The initial cataloging process may take time depending on your modification library. Please allow the process to complete.");
+                UiSharedService.ColorTextWrapped("Warning: Do not remove the FileCache.csv from your Dalamud Plugin Configurations after this step. " +
+                                          "Deletion will trigger a complete re-cataloging of the Memory Archive on next startup.", ImGuiColors.DalamudYellow);
+                UiSharedService.ColorTextWrapped("Warning: If cataloging stalls indefinitely, verify that your Penumbra directory structure is properly configured.", ImGuiColors.DalamudYellow);
                 _uiShared.DrawCacheDirectorySetting();
             }
 
@@ -203,27 +204,27 @@ public partial class IntroUi : WindowMediatorSubscriberBase
         else if (!_uiShared.ApiController.ServerAlive)
         {
             using (_uiShared.UidFont.Push())
-                ImGui.TextUnformatted("Service Registration");
+                ImGui.TextUnformatted("Network Authentication");
             ImGui.Separator();
-            UiSharedService.TextWrapped("To be able to use Sphene you will have to register an account.");
-            UiSharedService.TextWrapped("For the official Sphene Servers the account creation will be handled on the official Sphene Discord. Due to security risks for the server, there is no way to handle this sensibly otherwise.");
-            UiSharedService.TextWrapped("If you want to register at the main server \"" + WebAPI.ApiController.MainServer + "\" join the Discord and follow the instructions as described in #sphene-service.");
+            UiSharedService.TextWrapped("To access the Sphene Network, you must establish your identity within the system.");
+            UiSharedService.TextWrapped("For the primary Network nodes, authentication is managed through the official Sphene Discord community. This ensures the security and integrity of the Network's core infrastructure.");
+            UiSharedService.TextWrapped("To connect to the main server \"" + WebAPI.ApiController.MainServer + "\" join our Discord community and follow the authentication protocols in #sphene-service.");
 
-            if (ImGui.Button("Join the Sphene Discord"))
+            if (ImGui.Button("Join the Sphene Network Community"))
             {
-                Util.OpenLink("https://discord.com/invite");
+                Util.OpenLink("https://discord.gg/GbnwsP2XsF");
             }
 
-            UiSharedService.TextWrapped("For all other non official services you will have to contact the appropriate service provider how to obtain a secret key.");
+            UiSharedService.TextWrapped("For alternative Network nodes, contact the respective node administrators to obtain proper authentication credentials.");
 
             UiSharedService.DistanceSeparator();
 
-            UiSharedService.TextWrapped("Once you have registered you can connect to the service using the tools provided below.");
+            UiSharedService.TextWrapped("Once authenticated, you can establish your connection to the Network using the interface below.");
 
             int serverIdx = 0;
             var selectedServer = _serverConfigurationManager.GetServerByIndex(serverIdx);
 
-            using (var node = ImRaii.TreeNode("Advanced Options", ImGuiTreeNodeFlags.DefaultOpen))
+            using (var node = ImRaii.TreeNode("Network Configuration", ImGuiTreeNodeFlags.DefaultOpen))
             {
                 if (node)
                 {
@@ -237,7 +238,7 @@ public partial class IntroUi : WindowMediatorSubscriberBase
                     selectedServer = _serverConfigurationManager.GetServerByIndex(serverIdx);
                     _useLegacyLogin = !selectedServer.UseOAuth2;
 
-                    if (ImGui.Checkbox("Use Legacy Login with Secret Key", ref _useLegacyLogin))
+                    if (ImGui.Checkbox("Use Legacy Authentication Protocol", ref _useLegacyLogin))
                     {
                         _serverConfigurationManager.GetServerByIndex(serverIdx).UseOAuth2 = !_useLegacyLogin;
                         _serverConfigurationManager.Save();
@@ -247,15 +248,15 @@ public partial class IntroUi : WindowMediatorSubscriberBase
 
             if (_useLegacyLogin)
             {
-                var text = "Enter Secret Key";
+                var text = "Enter Authentication Key";
                 var buttonText = "Save";
                 var buttonWidth = _secretKey.Length != 64 ? 0 : ImGuiHelpers.GetButtonSize(buttonText).X + ImGui.GetStyle().ItemSpacing.X;
                 var textSize = ImGui.CalcTextSize(text);
 
                 ImGuiHelpers.ScaledDummy(5);
-                UiSharedService.DrawGroupedCenteredColorText("Strongly consider to use OAuth2 to authenticate, if the server supports it (the current main server does). " +
-                    "The authentication flow is simpler and you do not require to store or maintain Secret Keys. " +
-                    "You already implicitly register using Discord, so the OAuth2 method will be cleaner and more straight-forward to use.", ImGuiColors.DalamudYellow, 500);
+                UiSharedService.DrawGroupedCenteredColorText("We recommend using the modern OAuth2 authentication protocol when available (supported by the main Network node). " +
+                    "This method provides a streamlined connection process without requiring manual key management. " +
+                    "Since you authenticate through Discord, the OAuth2 protocol offers a more secure and user-friendly experience.", ImGuiColors.DalamudYellow, 500);
                 ImGuiHelpers.ScaledDummy(5);
 
                 ImGui.AlignTextToFramePadding();
@@ -265,11 +266,11 @@ public partial class IntroUi : WindowMediatorSubscriberBase
                 ImGui.InputText("", ref _secretKey, 64);
                 if (_secretKey.Length > 0 && _secretKey.Length != 64)
                 {
-                    UiSharedService.ColorTextWrapped("Your secret key must be exactly 64 characters long. Don't enter your Lodestone auth here.", ImGuiColors.DalamudRed);
+                    UiSharedService.ColorTextWrapped("Your authentication key must be exactly 64 characters long. Do not use your Lodestone credentials here.", ImGuiColors.DalamudRed);
                 }
                 else if (_secretKey.Length == 64 && !Base32Regex().IsMatch(_secretKey))
                 {
-                    UiSharedService.ColorTextWrapped("Your secret key can only contain letters A-Z and numbers 2-7.", ImGuiColors.DalamudRed);
+                    UiSharedService.ColorTextWrapped("Your authentication key may only contain letters A-Z and numbers 2-7.", ImGuiColors.DalamudRed);
                 }
                 else if (_secretKey.Length == 64)
                 {
@@ -281,7 +282,7 @@ public partial class IntroUi : WindowMediatorSubscriberBase
                         {
                             _serverConfigurationManager.CurrentServer!.SecretKeys.Add(_serverConfigurationManager.CurrentServer.SecretKeys.Select(k => k.Key).LastOrDefault() + 1, new SecretKey()
                             {
-                                FriendlyName = $"Secret Key added on Setup ({DateTime.Now:yyyy-MM-dd})",
+                                FriendlyName = $"Authentication Key added on Setup ({DateTime.Now:yyyy-MM-dd})",
                                 Key = _secretKey,
                             });
                             _serverConfigurationManager.AddCurrentCharacterToServer();
@@ -290,7 +291,7 @@ public partial class IntroUi : WindowMediatorSubscriberBase
                         {
                             _serverConfigurationManager.CurrentServer!.SecretKeys[0] = new SecretKey()
                             {
-                                FriendlyName = $"Secret Key added on Setup ({DateTime.Now:yyyy-MM-dd})",
+                                FriendlyName = $"Authentication Key added on Setup ({DateTime.Now:yyyy-MM-dd})",
                                 Key = _secretKey,
                             };
                         }
@@ -303,18 +304,18 @@ public partial class IntroUi : WindowMediatorSubscriberBase
             {
                 if (string.IsNullOrEmpty(selectedServer.OAuthToken))
                 {
-                    UiSharedService.TextWrapped("Press the button below to verify the server has OAuth2 capabilities. Afterwards, authenticate using Discord in the Browser window.");
+                    UiSharedService.TextWrapped("Press the button below to verify Network OAuth2 compatibility. Then authenticate through Discord in your browser.");
                     _uiShared.DrawOAuth(selectedServer);
                 }
                 else
                 {
-                    UiSharedService.ColorTextWrapped($"OAuth2 is connected. Linked to: Discord User {_serverConfigurationManager.GetDiscordUserFromToken(selectedServer)}", ImGuiColors.HealerGreen);
-                    UiSharedService.TextWrapped("Now press the update UIDs button to get a list of all of your UIDs on the server.");
+                    UiSharedService.ColorTextWrapped($"Network authentication established. Connected as: Discord User {_serverConfigurationManager.GetDiscordUserFromToken(selectedServer)}", ImGuiColors.HealerGreen);
+                    UiSharedService.TextWrapped("Now retrieve your Network identifiers to complete the connection process.");
                     _uiShared.DrawUpdateOAuthUIDsButton(selectedServer);
                     var playerName = _dalamudUtilService.GetPlayerName();
                     var playerWorld = _dalamudUtilService.GetHomeWorldId();
-                    UiSharedService.TextWrapped($"Once pressed, select the UID you want to use for your current character {_dalamudUtilService.GetPlayerName()}. If no UIDs are visible, make sure you are connected to the correct Discord account. " +
-                        $"If that is not the case, use the unlink button below (hold CTRL to unlink).");
+                    UiSharedService.TextWrapped($"Select the Network identifier for your character {_dalamudUtilService.GetPlayerName()}. If no identifiers appear, verify your Discord account connection. " +
+                        $"If needed, use the unlink option below (hold CTRL to disconnect).");
                     _uiShared.DrawUnlinkOAuthButton(selectedServer);
 
                     var auth = selectedServer.Authentications.Find(a => string.Equals(a.CharacterName, playerName, StringComparison.Ordinal) && a.WorldId == playerWorld);
@@ -333,13 +334,13 @@ public partial class IntroUi : WindowMediatorSubscriberBase
 
                     using (ImRaii.Disabled(string.IsNullOrEmpty(auth.UID)))
                     {
-                        if (_uiShared.IconTextButton(Dalamud.Interface.FontAwesomeIcon.Link, "Connect to Service"))
+                        if (_uiShared.IconTextButton(Dalamud.Interface.FontAwesomeIcon.Link, "Connect to Network"))
                         {
                             _ = Task.Run(() => _uiShared.ApiController.CreateConnectionsAsync());
                         }
                     }
                     if (string.IsNullOrEmpty(auth.UID))
-                        UiSharedService.AttachToolTip("Select a UID to be able to connect to the service");
+                        UiSharedService.AttachToolTip("Select a Network identifier to establish connection");
                 }
             }
         }

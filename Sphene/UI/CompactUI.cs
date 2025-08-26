@@ -15,6 +15,7 @@ using Sphene.Services.Mediator;
 using Sphene.Services.ServerConfiguration;
 using Sphene.UI.Components;
 using Sphene.UI.Handlers;
+using Sphene.UI.Styling;
 using Sphene.WebAPI;
 using Sphene.WebAPI.Files;
 using Sphene.WebAPI.Files.Models;
@@ -88,7 +89,7 @@ public class CompactUi : WindowMediatorSubscriberBase
                 ShowTooltip = () =>
                 {
                     ImGui.BeginTooltip();
-                    ImGui.Text("Open Sphene Settings");
+                    ImGui.Text("Open Network Configuration");
                     ImGui.EndTooltip();
                 }
             },
@@ -103,7 +104,7 @@ public class CompactUi : WindowMediatorSubscriberBase
                 ShowTooltip = () =>
                 {
                     ImGui.BeginTooltip();
-                    ImGui.Text("Open Sphene Event Viewer");
+                    ImGui.Text("Open Network Event Log");
                     ImGui.EndTooltip();
                 }
             }
@@ -128,17 +129,20 @@ public class CompactUi : WindowMediatorSubscriberBase
         Mediator.Subscribe<DownloadFinishedMessage>(this, (msg) => _currentDownloads.TryRemove(msg.DownloadId, out _));
         Mediator.Subscribe<RefreshUiMessage>(this, (msg) => _drawFolders = GetDrawFolders().ToList());
 
-        Flags |= ImGuiWindowFlags.NoDocking;
+        // Make window practically invisible - no decoration, no background, no borders
+        Flags |= ImGuiWindowFlags.NoDocking | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse 
+               | ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoBackground | ImGuiWindowFlags.NoBringToFrontOnFocus;
 
         SizeConstraints = new WindowSizeConstraints()
         {
-            MinimumSize = new Vector2(375, 400),
-            MaximumSize = new Vector2(375, 2000),
+            MinimumSize = new Vector2(370, 400),
+            MaximumSize = new Vector2(370, 2000),
         };
     }
 
     protected override void DrawInternal()
     {
+        
         _windowContentWidth = UiSharedService.GetWindowContentRegionWidth();
         if (!_apiController.IsCurrentVersion)
         {
@@ -151,13 +155,13 @@ public class CompactUi : WindowMediatorSubscriberBase
                 ImGui.AlignTextToFramePadding();
                 ImGui.TextColored(ImGuiColors.DalamudRed, unsupported);
             }
-            UiSharedService.ColorTextWrapped($"Your Sphene installation is out of date, the current version is {ver.Major}.{ver.Minor}.{ver.Build}. " +
-            $"It is highly recommended to keep Sphene up to date. Open /xlplugins and update the plugin.", ImGuiColors.DalamudRed);
+            UiSharedService.ColorTextWrapped($"Your Network client is outdated, current version is {ver.Major}.{ver.Minor}.{ver.Build}. " +
+            $"Please update your client to maintain Network compatibility. Open /xlplugins and update the plugin.", ImGuiColors.DalamudRed);
         }
 
         if (!_ipcManager.Initialized)
         {
-            var unsupported = "MISSING ESSENTIAL PLUGINS";
+            var unsupported = "MISSING CORE COMPONENTS";
 
             using (_uiSharedService.UidFont.Push())
             {
@@ -169,7 +173,7 @@ public class CompactUi : WindowMediatorSubscriberBase
             var penumAvailable = _ipcManager.Penumbra.APIAvailable;
             var glamAvailable = _ipcManager.Glamourer.APIAvailable;
 
-            UiSharedService.ColorTextWrapped($"One or more Plugins essential for Sphene operation are unavailable. Enable or update following plugins:", ImGuiColors.DalamudRed);
+            UiSharedService.ColorTextWrapped($"One or more components essential for Network operation are unavailable. Enable or update the following:", ImGuiColors.DalamudRed);
             using var indent = ImRaii.PushIndent(10f);
             if (!penumAvailable)
             {
@@ -184,22 +188,72 @@ public class CompactUi : WindowMediatorSubscriberBase
             ImGui.Separator();
         }
 
-        using (ImRaii.PushId("header")) DrawUIDHeader();
-        ImGui.Separator();
-        using (ImRaii.PushId("serverstatus")) DrawServerStatus();
-        ImGui.Separator();
-
-        if (_apiController.ServerState is ServerState.Connected)
-        {
-            using (ImRaii.PushId("global-topmenu")) _tabMenu.Draw();
-            using (ImRaii.PushId("pairlist")) DrawPairs();
+        // Single unified card layout with integrated controls and header buttons
+        SpheneUIEnhancements.DrawSpheneCard("Sphene Control Panel", () => {
+            // Network Identity Section
+            ImGui.TextColored(SpheneColors.SpheneGold, "Network Identity");
             ImGui.Separator();
-            float pairlistEnd = ImGui.GetCursorPosY();
-            using (ImRaii.PushId("transfers")) DrawTransfers();
-            _transferPartHeight = ImGui.GetCursorPosY() - pairlistEnd - ImGui.GetTextLineHeight();
-            using (ImRaii.PushId("group-user-popup")) _selectPairsForGroupUi.Draw(_pairManager.DirectPairs);
-            using (ImRaii.PushId("grouping-popup")) _selectGroupForPairUi.Draw();
-        }
+            DrawUIDContent();
+            
+            ImGui.Spacing();
+            ImGui.Spacing();
+            
+            // Server Status Section
+            ImGui.TextColored(SpheneColors.SpheneGold, "Server Status");
+            ImGui.Separator();
+            DrawServerStatusContent();
+            
+            if (_apiController.ServerState is ServerState.Connected)
+            {
+                ImGui.Spacing();
+                ImGui.Spacing();
+                
+                // Navigation Section
+                ImGui.TextColored(SpheneColors.SpheneGold, "Navigation");
+                ImGui.Separator();
+                _tabMenu.Draw();
+                
+                ImGui.Spacing();
+                ImGui.Spacing();
+                
+                // Connected Pairs Section
+                ImGui.TextColored(SpheneColors.SpheneGold, "Connected Pairs");
+                ImGui.Separator();
+                using (ImRaii.PushId("pairlist")) DrawPairs();
+                
+                ImGui.Separator();
+                float pairlistEnd = ImGui.GetCursorPosY();
+                using (ImRaii.PushId("transfers")) DrawTransfers();
+                _transferPartHeight = ImGui.GetCursorPosY() - pairlistEnd - ImGui.GetTextLineHeight();
+                using (ImRaii.PushId("group-user-popup")) _selectPairsForGroupUi.Draw(_pairManager.DirectPairs);
+                using (ImRaii.PushId("grouping-popup")) _selectGroupForPairUi.Draw();
+            }
+        }, collapsible: false, maxHeight: null, headerButtons: () => {
+            // Settings button
+            if (_uiSharedService.IconButton(FontAwesomeIcon.Cog))
+            {
+                Mediator.Publish(new UiToggleMessage(typeof(SettingsUi)));
+            }
+            if (ImGui.IsItemHovered())
+            {
+                ImGui.BeginTooltip();
+                ImGui.Text("Open Network Configuration");
+                ImGui.EndTooltip();
+            }
+            
+            // Close button
+            ImGui.SameLine();
+            if (_uiSharedService.IconButton(FontAwesomeIcon.Times))
+            {
+                IsOpen = false;
+            }
+            if (ImGui.IsItemHovered())
+            {
+                ImGui.BeginTooltip();
+                ImGui.Text("Close Sphene");
+                ImGui.EndTooltip();
+            }
+        });
 
         if (_configService.Current.OpenPopupOnAdd && _pairManager.LastAddedUser != null)
         {
@@ -232,6 +286,47 @@ public class CompactUi : WindowMediatorSubscriberBase
             ImGui.EndPopup();
         }
 
+        // Add resize handle at bottom-right corner for height adjustment only
+        var windowPos = ImGui.GetWindowPos();
+        var windowSize = ImGui.GetWindowSize();
+        var resizeHandleSize = new Vector2(7, 7); // Größerer Handle für bessere Sichtbarkeit
+        var resizeHandlePos = new Vector2(windowPos.X + windowSize.X - resizeHandleSize.X - 5, windowPos.Y + windowSize.Y - resizeHandleSize.Y - 5);
+        
+        ImGui.SetCursorScreenPos(resizeHandlePos);
+        ImGui.InvisibleButton("##resize_handle", resizeHandleSize);
+        
+        if (ImGui.IsItemActive())
+        {
+            var mouseDelta = ImGui.GetIO().MouseDelta;
+            var newHeight = Math.Max(SizeConstraints!.Value.MinimumSize.Y, Math.Min(SizeConstraints!.Value.MaximumSize.Y, windowSize.Y + mouseDelta.Y));
+            ImGui.SetWindowSize(new Vector2(windowSize.X, newHeight));
+        }
+        
+        // Draw resize handle visual indicator - deutlich sichtbarer
+        var drawList = ImGui.GetWindowDrawList();
+        var isHovered = ImGui.IsItemHovered();
+        var isActive = ImGui.IsItemActive();
+        
+        // Hintergrund für den Handle
+        var bgColor = isActive ? ImGui.GetColorU32(ImGuiCol.ButtonActive) : 
+                     isHovered ? ImGui.GetColorU32(ImGuiCol.ButtonHovered) : 
+                     ImGui.GetColorU32(new Vector4(0.3f, 0.3f, 0.3f, 0.8f));
+        drawList.AddRectFilled(resizeHandlePos, new Vector2(resizeHandlePos.X + resizeHandleSize.X, resizeHandlePos.Y + resizeHandleSize.Y), bgColor, 3.0f);
+        
+        // Rahmen um den Handle
+        var borderColor = isHovered ? ImGui.GetColorU32(ImGuiCol.Text) : ImGui.GetColorU32(ImGuiCol.Border);
+        drawList.AddRect(resizeHandlePos, new Vector2(resizeHandlePos.X + resizeHandleSize.X, resizeHandlePos.Y + resizeHandleSize.Y), borderColor, 3.0f, ImDrawFlags.None, 1.5f);
+        
+        // Verstärkte diagonale Linien als Resize-Indikator
+        var lineColor = isHovered ? ImGui.GetColorU32(new Vector4(0.8f, 0.8f, 0.8f, 0.0f)) : ImGui.GetColorU32(new Vector4(0.8f, 0.8f, 0.8f, 0.0f));
+        for (int i = 0; i < 4; i++)
+        {
+            var offset = i * 5;
+            var lineStart = new Vector2(resizeHandlePos.X + 6 + offset, resizeHandlePos.Y + 24 - offset);
+            var lineEnd = new Vector2(resizeHandlePos.X + 24 + offset, resizeHandlePos.Y + 6 - offset);
+            drawList.AddLine(lineStart, lineEnd, lineColor, 2.0f);
+        }
+
         var pos = ImGui.GetWindowPos();
         var size = ImGui.GetWindowSize();
         if (_lastSize != size || _lastPosition != pos)
@@ -260,83 +355,34 @@ public class CompactUi : WindowMediatorSubscriberBase
     }
     private void DrawServerStatus()
     {
-        var buttonSize = _uiSharedService.GetIconButtonSize(FontAwesomeIcon.Link);
-        var userCount = _apiController.OnlineUsers.ToString(CultureInfo.InvariantCulture);
-        var userSize = ImGui.CalcTextSize(userCount);
-        var textSize = ImGui.CalcTextSize("Users Online");
-#if DEBUG
-        string shardConnection = $"Shard: {_apiController.ServerInfo.ShardName}";
-#else
-        string shardConnection = string.Equals(_apiController.ServerInfo.ShardName, "Main", StringComparison.OrdinalIgnoreCase) ? string.Empty : $"Shard: {_apiController.ServerInfo.ShardName}";
-#endif
-        var shardTextSize = ImGui.CalcTextSize(shardConnection);
-        var printShard = !string.IsNullOrEmpty(_apiController.ServerInfo.ShardName) && shardConnection != string.Empty;
+        DrawServerStatusContent();
+    }
 
-        if (_apiController.ServerState is ServerState.Connected)
+    private void DrawServerStatusContent()
+    {
+        // Draw Sphene-themed status indicator
+        var connectionStatus = _apiController.ServerState == ServerState.Connected ? "Connected" : "Disconnected";
+        var statusColor = _apiController.ServerState == ServerState.Connected 
+            ? SpheneColors.CrystalBlue 
+            : SpheneColors.NetworkDisconnected;
+        
+        SpheneUIEnhancements.DrawSpheneStatusIndicator(connectionStatus, _apiController.ServerState == ServerState.Connected);
+        
+        if (_apiController.ServerState == ServerState.Connected)
         {
-            ImGui.SetCursorPosX((ImGui.GetWindowContentRegionMin().X + UiSharedService.GetWindowContentRegionWidth()) / 2 - (userSize.X + textSize.X) / 2 - ImGui.GetStyle().ItemSpacing.X / 2);
-            if (!printShard) ImGui.AlignTextToFramePadding();
-            ImGui.TextColored(ImGuiColors.ParsedGreen, userCount);
-            ImGui.SameLine();
-            if (!printShard) ImGui.AlignTextToFramePadding();
-            ImGui.TextUnformatted("Users Online");
-        }
-        else
-        {
-            ImGui.AlignTextToFramePadding();
-            ImGui.TextColored(ImGuiColors.DalamudRed, "Not connected to any server");
-        }
-
-        if (printShard)
-        {
-            ImGui.SetCursorPosY(ImGui.GetCursorPosY() - ImGui.GetStyle().ItemSpacing.Y);
-            ImGui.SetCursorPosX((ImGui.GetWindowContentRegionMin().X + UiSharedService.GetWindowContentRegionWidth()) / 2 - shardTextSize.X / 2);
-            ImGui.TextUnformatted(shardConnection);
-        }
-
-        ImGui.SameLine();
-        if (printShard)
-        {
-            ImGui.SetCursorPosY(ImGui.GetCursorPosY() - ((userSize.Y + textSize.Y) / 2 + shardTextSize.Y) / 2 - ImGui.GetStyle().ItemSpacing.Y + buttonSize.Y / 2);
-        }
-        bool isConnectingOrConnected = _apiController.ServerState is ServerState.Connected or ServerState.Connecting or ServerState.Reconnecting;
-        var color = UiSharedService.GetBoolColor(!isConnectingOrConnected);
-        var connectedIcon = isConnectingOrConnected ? FontAwesomeIcon.Unlink : FontAwesomeIcon.Link;
-
-        ImGui.SameLine(ImGui.GetWindowContentRegionMin().X + UiSharedService.GetWindowContentRegionWidth() - buttonSize.X);
-        if (printShard)
-        {
-            ImGui.SetCursorPosY(ImGui.GetCursorPosY() - ((userSize.Y + textSize.Y) / 2 + shardTextSize.Y) / 2 - ImGui.GetStyle().ItemSpacing.Y + buttonSize.Y / 2);
-        }
-
-        if (_apiController.ServerState is not (ServerState.Reconnecting or ServerState.Disconnecting))
-        {
-            using (ImRaii.PushColor(ImGuiCol.Text, color))
-            {
-                if (_uiSharedService.IconButton(connectedIcon))
-                {
-                    if (isConnectingOrConnected && !_serverManager.CurrentServer.FullPause)
-                    {
-                        _serverManager.CurrentServer.FullPause = true;
-                        _serverManager.Save();
-                    }
-                    else if (!isConnectingOrConnected && _serverManager.CurrentServer.FullPause)
-                    {
-                        _serverManager.CurrentServer.FullPause = false;
-                        _serverManager.Save();
-                    }
-
-                    _ = _apiController.CreateConnectionsAsync();
-                }
-            }
-
-            UiSharedService.AttachToolTip(isConnectingOrConnected ? "Disconnect from " + _serverManager.CurrentServer.ServerName : "Connect to " + _serverManager.CurrentServer.ServerName);
+            var userCount = _apiController.OnlineUsers;
+            var shardInfo = _apiController.ServerInfo?.ShardName ?? "Unknown";
+            
+            ImGui.Text($"Users Online: {userCount}");
+            ImGui.Text($"Shard: {shardInfo}");
         }
     }
 
     private void DrawTransfers()
     {
         var currentUploads = _fileTransferManager.CurrentUploads.ToList();
+        
+        // Draw Sphene-themed transmission indicators
         ImGui.AlignTextToFramePadding();
         _uiSharedService.IconText(FontAwesomeIcon.Upload);
         ImGui.SameLine(35 * ImGuiHelpers.GlobalScale);
@@ -344,22 +390,19 @@ public class CompactUi : WindowMediatorSubscriberBase
         if (currentUploads.Any())
         {
             var totalUploads = currentUploads.Count;
-
             var doneUploads = currentUploads.Count(c => c.IsTransferred);
             var totalUploaded = currentUploads.Sum(c => c.Transferred);
             var totalToUpload = currentUploads.Sum(c => c.Total);
-
-            ImGui.TextUnformatted($"{doneUploads}/{totalUploads}");
-            var uploadText = $"({UiSharedService.ByteToString(totalUploaded)}/{UiSharedService.ByteToString(totalToUpload)})";
-            var textSize = ImGui.CalcTextSize(uploadText);
-            ImGui.SameLine(_windowContentWidth - textSize.X);
-            ImGui.AlignTextToFramePadding();
-            ImGui.TextUnformatted(uploadText);
+            
+            var uploadProgress = totalToUpload > 0 ? (float)totalUploaded / totalToUpload : 0f;
+            var uploadText = $"{doneUploads}/{totalUploads} ({UiSharedService.ByteToString(totalUploaded)}/{UiSharedService.ByteToString(totalToUpload)})";
+            
+            SpheneUIEnhancements.DrawSpheneProgressBar("Transmitting", uploadProgress, uploadText, SpheneColors.TransmissionActive);
         }
         else
         {
             ImGui.AlignTextToFramePadding();
-            ImGui.TextUnformatted("No uploads in progress");
+            ImGui.TextColored(SpheneColors.UITextSecondary, "No transmissions in progress");
         }
 
         var currentDownloads = _currentDownloads.SelectMany(d => d.Value.Values).ToList();
@@ -373,26 +416,28 @@ public class CompactUi : WindowMediatorSubscriberBase
             var doneDownloads = currentDownloads.Sum(c => c.TransferredFiles);
             var totalDownloaded = currentDownloads.Sum(c => c.TransferredBytes);
             var totalToDownload = currentDownloads.Sum(c => c.TotalBytes);
-
-            ImGui.TextUnformatted($"{doneDownloads}/{totalDownloads}");
-            var downloadText =
-                $"({UiSharedService.ByteToString(totalDownloaded)}/{UiSharedService.ByteToString(totalToDownload)})";
-            var textSize = ImGui.CalcTextSize(downloadText);
-            ImGui.SameLine(_windowContentWidth - textSize.X);
-            ImGui.AlignTextToFramePadding();
-            ImGui.TextUnformatted(downloadText);
+            
+            var downloadProgress = totalToDownload > 0 ? (float)totalDownloaded / totalToDownload : 0f;
+            var downloadText = $"{doneDownloads}/{totalDownloads} ({UiSharedService.ByteToString(totalDownloaded)}/{UiSharedService.ByteToString(totalToDownload)})";
+            
+            SpheneUIEnhancements.DrawSpheneProgressBar("Receiving", downloadProgress, downloadText, SpheneColors.ReceptionActive);
         }
         else
         {
             ImGui.AlignTextToFramePadding();
-            ImGui.TextUnformatted("No downloads in progress");
+            ImGui.TextColored(SpheneColors.UITextSecondary, "No receptions in progress");
         }
     }
 
     private void DrawUIDHeader()
     {
-        var uidText = GetUidText();
+        DrawUIDContent();
+    }
 
+    private void DrawUIDContent()
+    {
+        var uidText = GetUidText();
+        
         using (_uiSharedService.UidFont.Push())
         {
             var uidTextSize = ImGui.CalcTextSize(uidText);
@@ -626,6 +671,8 @@ public class CompactUi : WindowMediatorSubscriberBase
             _ => string.Empty
         };
     }
+
+
 
     private void UiSharedService_GposeEnd()
     {

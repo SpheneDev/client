@@ -16,6 +16,7 @@ using Sphene.PlayerData.Pairs;
 using Sphene.Services;
 using Sphene.Services.Mediator;
 using Sphene.Services.ServerConfiguration;
+using Sphene.UI.Styling;
 using Sphene.Utils;
 using Sphene.WebAPI;
 using Sphene.WebAPI.Files;
@@ -77,7 +78,7 @@ public class SettingsUi : WindowMediatorSubscriberBase
         FileCacheManager fileCacheManager,
         FileCompactor fileCompactor, ApiController apiController,
         IpcManager ipcManager, CacheMonitor cacheMonitor,
-        DalamudUtilService dalamudUtilService, HttpClient httpClient) : base(logger, mediator, "Sphene Settings", performanceCollector)
+        DalamudUtilService dalamudUtilService, HttpClient httpClient) : base(logger, mediator, "Network Configuration", performanceCollector)
     {
         _configService = configService;
         _pairManager = pairManager;
@@ -138,6 +139,7 @@ public class SettingsUi : WindowMediatorSubscriberBase
 
     protected override void DrawInternal()
     {
+        
         _ = _uiShared.DrawOtherPluginState();
 
         DrawSettingsContent();
@@ -210,14 +212,14 @@ public class SettingsUi : WindowMediatorSubscriberBase
     private void DrawCurrentTransfers()
     {
         _lastTab = "Transfers";
-        _uiShared.BigText("Transfer Settings");
+        _uiShared.BigText("Data Transmission Settings");
 
         int maxParallelDownloads = _configService.Current.ParallelDownloads;
         bool useAlternativeUpload = _configService.Current.UseAlternativeFileUpload;
         int downloadSpeedLimit = _configService.Current.DownloadSpeedLimitInBytes;
 
         ImGui.AlignTextToFramePadding();
-        ImGui.TextUnformatted("Global Download Speed Limit");
+        ImGui.TextUnformatted("Global Data Reception Limit");
         ImGui.SameLine();
         ImGui.SetNextItemWidth(100 * ImGuiHelpers.GlobalScale);
         if (ImGui.InputInt("###speedlimit", ref downloadSpeedLimit))
@@ -245,37 +247,37 @@ public class SettingsUi : WindowMediatorSubscriberBase
         ImGui.AlignTextToFramePadding();
         ImGui.TextUnformatted("0 = No limit/infinite");
 
-        if (ImGui.SliderInt("Maximum Parallel Downloads", ref maxParallelDownloads, 1, 10))
+        if (ImGui.SliderInt("Maximum Parallel Data Streams", ref maxParallelDownloads, 1, 10))
         {
             _configService.Current.ParallelDownloads = maxParallelDownloads;
             _configService.Save();
         }
 
-        if (ImGui.Checkbox("Use Alternative Upload Method", ref useAlternativeUpload))
+        if (ImGui.Checkbox("Use Alternative Transmission Method", ref useAlternativeUpload))
         {
             _configService.Current.UseAlternativeFileUpload = useAlternativeUpload;
             _configService.Save();
         }
-        _uiShared.DrawHelpText("This will attempt to upload files in one go instead of a stream. Typically not necessary to enable. Use if you have upload issues.");
+        _uiShared.DrawHelpText("This will attempt to transmit data in one go instead of a stream. Typically not necessary to enable. Use if you have transmission issues.");
 
         ImGui.Separator();
-        _uiShared.BigText("Transfer UI");
+        _uiShared.BigText("Transmission Interface");
 
         bool showTransferWindow = _configService.Current.ShowTransferWindow;
-        if (ImGui.Checkbox("Show separate transfer window", ref showTransferWindow))
+        if (ImGui.Checkbox("Show separate transmission monitor", ref showTransferWindow))
         {
             _configService.Current.ShowTransferWindow = showTransferWindow;
             _configService.Save();
         }
-        _uiShared.DrawHelpText($"The download window will show the current progress of outstanding downloads.{Environment.NewLine}{Environment.NewLine}" +
-            $"What do W/Q/P/D stand for?{Environment.NewLine}W = Waiting for Slot (see Maximum Parallel Downloads){Environment.NewLine}" +
-            $"Q = Queued on Server, waiting for queue ready signal{Environment.NewLine}" +
-            $"P = Processing download (aka downloading){Environment.NewLine}" +
-            $"D = Decompressing download");
+        _uiShared.DrawHelpText($"The transmission monitor displays current progress of active data streams.{Environment.NewLine}{Environment.NewLine}" +
+            $"Status indicators:{Environment.NewLine}W = Waiting for Slot (see Maximum Parallel Data Streams){Environment.NewLine}" +
+            $"Q = Queued on Network Node, awaiting signal{Environment.NewLine}" +
+            $"P = Processing transmission (receiving data){Environment.NewLine}" +
+            $"D = Decompressing received data");
         if (!_configService.Current.ShowTransferWindow) ImGui.BeginDisabled();
         ImGui.Indent();
         bool editTransferWindowPosition = _uiShared.EditTrackerPosition;
-        if (ImGui.Checkbox("Edit Transfer Window position", ref editTransferWindowPosition))
+        if (ImGui.Checkbox("Edit Transmission Monitor position", ref editTransferWindowPosition))
         {
             _uiShared.EditTrackerPosition = editTransferWindowPosition;
         }
@@ -283,49 +285,49 @@ public class SettingsUi : WindowMediatorSubscriberBase
         if (!_configService.Current.ShowTransferWindow) ImGui.EndDisabled();
 
         bool showTransferBars = _configService.Current.ShowTransferBars;
-        if (ImGui.Checkbox("Show transfer bars rendered below players", ref showTransferBars))
+        if (ImGui.Checkbox("Show transmission indicators below players", ref showTransferBars))
         {
             _configService.Current.ShowTransferBars = showTransferBars;
             _configService.Save();
         }
-        _uiShared.DrawHelpText("This will render a progress bar during the download at the feet of the player you are downloading from.");
+        _uiShared.DrawHelpText("This will render a progress indicator during data reception at the feet of the connected player.");
 
         if (!showTransferBars) ImGui.BeginDisabled();
         ImGui.Indent();
         bool transferBarShowText = _configService.Current.TransferBarsShowText;
-        if (ImGui.Checkbox("Show Download Text", ref transferBarShowText))
+        if (ImGui.Checkbox("Show Transmission Text", ref transferBarShowText))
         {
             _configService.Current.TransferBarsShowText = transferBarShowText;
             _configService.Save();
         }
-        _uiShared.DrawHelpText("Shows download text (amount of MiB downloaded) in the transfer bars");
+        _uiShared.DrawHelpText("Shows transmission text (amount of MiB received) in the progress indicators");
         int transferBarWidth = _configService.Current.TransferBarsWidth;
-        if (ImGui.SliderInt("Transfer Bar Width", ref transferBarWidth, 10, 500))
+        if (ImGui.SliderInt("Transmission Indicator Width", ref transferBarWidth, 10, 500))
         {
             _configService.Current.TransferBarsWidth = transferBarWidth;
             _configService.Save();
         }
-        _uiShared.DrawHelpText("Width of the displayed transfer bars (will never be less wide than the displayed text)");
+        _uiShared.DrawHelpText("Width of the displayed transmission indicators (will never be less wide than the displayed text)");
         int transferBarHeight = _configService.Current.TransferBarsHeight;
-        if (ImGui.SliderInt("Transfer Bar Height", ref transferBarHeight, 2, 50))
+        if (ImGui.SliderInt("Transmission Indicator Height", ref transferBarHeight, 2, 50))
         {
             _configService.Current.TransferBarsHeight = transferBarHeight;
             _configService.Save();
         }
-        _uiShared.DrawHelpText("Height of the displayed transfer bars (will never be less tall than the displayed text)");
+        _uiShared.DrawHelpText("Height of the displayed transmission indicators (will never be less tall than the displayed text)");
         bool showUploading = _configService.Current.ShowUploading;
-        if (ImGui.Checkbox("Show 'Uploading' text below players that are currently uploading", ref showUploading))
+        if (ImGui.Checkbox("Show 'Transmitting' text below players that are currently transmitting", ref showUploading))
         {
             _configService.Current.ShowUploading = showUploading;
             _configService.Save();
         }
-        _uiShared.DrawHelpText("This will render an 'Uploading' text at the feet of the player that is in progress of uploading data.");
+        _uiShared.DrawHelpText("This will render a 'Transmitting' text at the feet of the player that is in progress of transmitting data.");
 
         ImGui.Unindent();
         if (!showUploading) ImGui.BeginDisabled();
         ImGui.Indent();
         bool showUploadingBigText = _configService.Current.ShowUploadingBigText;
-        if (ImGui.Checkbox("Large font for 'Uploading' text", ref showUploadingBigText))
+        if (ImGui.Checkbox("Large font for 'Transmitting' text", ref showUploadingBigText))
         {
             _configService.Current.ShowUploadingBigText = showUploadingBigText;
             _configService.Save();
@@ -557,7 +559,7 @@ public class SettingsUi : WindowMediatorSubscriberBase
     {
         _lastTab = "Debug";
 
-        _uiShared.BigText("Debug");
+        _uiShared.BigText("Network Diagnostics");
 #if DEBUG
         if (LastCreatedCharacterData != null && ImGui.TreeNode("Last created character data"))
         {
@@ -569,7 +571,7 @@ public class SettingsUi : WindowMediatorSubscriberBase
             ImGui.TreePop();
         }
 #endif
-        if (_uiShared.IconTextButton(FontAwesomeIcon.Copy, "[DEBUG] Copy Last created Character Data to clipboard"))
+        if (_uiShared.IconTextButton(FontAwesomeIcon.Copy, "[DIAGNOSTIC] Copy Last created Character Data to clipboard"))
         {
             if (LastCreatedCharacterData != null)
             {
@@ -580,7 +582,7 @@ public class SettingsUi : WindowMediatorSubscriberBase
                 ImGui.SetClipboardText("ERROR: No created character data, cannot copy.");
             }
         }
-        UiSharedService.AttachToolTip("Use this when reporting mods being rejected from the server.");
+        UiSharedService.AttachToolTip("Use this when reporting modifications being rejected from the Network.");
 
         _uiShared.DrawCombo("Log Level", Enum.GetValues<LogLevel>(), (l) => l.ToString(), (l) =>
         {
@@ -589,21 +591,21 @@ public class SettingsUi : WindowMediatorSubscriberBase
         }, _configService.Current.LogLevel);
 
         bool logPerformance = _configService.Current.LogPerformance;
-        if (ImGui.Checkbox("Log Performance Counters", ref logPerformance))
+        if (ImGui.Checkbox("Log Network Performance Metrics", ref logPerformance))
         {
             _configService.Current.LogPerformance = logPerformance;
             _configService.Save();
         }
-        _uiShared.DrawHelpText("Enabling this can incur a (slight) performance impact. Enabling this for extended periods of time is not recommended.");
+        _uiShared.DrawHelpText("Enabling this can incur a (slight) performance impact. Extended monitoring is not recommended.");
 
         using (ImRaii.Disabled(!logPerformance))
         {
-            if (_uiShared.IconTextButton(FontAwesomeIcon.StickyNote, "Print Performance Stats to /xllog"))
+            if (_uiShared.IconTextButton(FontAwesomeIcon.StickyNote, "Print Network Metrics to /xllog"))
             {
                 _performanceCollector.PrintPerformanceStats();
             }
             ImGui.SameLine();
-            if (_uiShared.IconTextButton(FontAwesomeIcon.StickyNote, "Print Performance Stats (last 60s) to /xllog"))
+            if (_uiShared.IconTextButton(FontAwesomeIcon.StickyNote, "Print Network Metrics (last 60s) to /xllog"))
             {
                 _performanceCollector.PrintPerformanceStats(60);
             }
@@ -615,7 +617,7 @@ public class SettingsUi : WindowMediatorSubscriberBase
             _configService.Current.DebugStopWhining = stopWhining;
             _configService.Save();
         }
-        _uiShared.DrawHelpText("Having modified game files will still mark your logs with UNSUPPORTED and you will not receive support, message shown or not." + UiSharedService.TooltipSeparator
+        _uiShared.DrawHelpText("Having modified game files will still mark your logs with UNSUPPORTED and you will not receive Network support, message shown or not." + UiSharedService.TooltipSeparator
             + "Keeping LOD enabled can lead to more crashes. Use at your own risk.");
     }
 
@@ -1942,7 +1944,7 @@ public class SettingsUi : WindowMediatorSubscriberBase
         ImGui.SameLine();
         if (ImGui.Button("Sphene Discord"))
         {
-            Util.OpenLink("https://discord.com/invite");
+            Util.OpenLink("https://discord.gg/GbnwsP2XsF");
         }
         ImGui.Separator();
         if (ImGui.BeginTabBar("mainTabBar"))

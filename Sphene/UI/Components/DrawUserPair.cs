@@ -62,7 +62,7 @@ public class DrawUserPair
     {
         using var id = ImRaii.PushId(GetType() + _id);
         var color = ImRaii.PushColor(ImGuiCol.ChildBg, ImGui.GetColorU32(ImGuiCol.FrameBgHovered), _wasHovered);
-        using (ImRaii.Child(GetType() + _id, new System.Numerics.Vector2(UiSharedService.GetWindowContentRegionWidth() - ImGui.GetCursorPosX(), ImGui.GetFrameHeight())))
+        using (ImRaii.Child(GetType() + _id, new System.Numerics.Vector2(UiSharedService.GetWindowContentRegionWidth() - ImGui.GetCursorPosX() - 30, ImGui.GetFrameHeight())))
         {
             DrawLeftSide();
             ImGui.SameLine();
