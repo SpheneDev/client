@@ -60,4 +60,7 @@ public class SpheneConfig : ISpheneConfiguration
     public int Version { get; set; } = 1;
     public NotificationLocation WarningNotification { get; set; } = NotificationLocation.Both;
     public bool UseFocusTarget { get; set; } = false;
+    public float IconPositionX { get; set; } = 100f;
+    public float IconPositionY { get; set; } = 100f;
+    public bool ShowSpheneIcon { get; set; } = true;
 }

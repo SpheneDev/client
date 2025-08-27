@@ -289,7 +289,7 @@ public class CompactUi : WindowMediatorSubscriberBase
         // Add resize handle at bottom-right corner for height adjustment only
         var windowPos = ImGui.GetWindowPos();
         var windowSize = ImGui.GetWindowSize();
-        var resizeHandleSize = new Vector2(7, 7); // Größerer Handle für bessere Sichtbarkeit
+        var resizeHandleSize = new Vector2(7, 7); // Larger handle for better visibility
         var resizeHandlePos = new Vector2(windowPos.X + windowSize.X - resizeHandleSize.X - 5, windowPos.Y + windowSize.Y - resizeHandleSize.Y - 5);
         
         ImGui.SetCursorScreenPos(resizeHandlePos);
@@ -307,7 +307,7 @@ public class CompactUi : WindowMediatorSubscriberBase
         var isHovered = ImGui.IsItemHovered();
         var isActive = ImGui.IsItemActive();
         
-        // Hintergrund für den Handle
+        // Background for the handle
         var bgColor = isActive ? ImGui.GetColorU32(ImGuiCol.ButtonActive) : 
                      isHovered ? ImGui.GetColorU32(ImGuiCol.ButtonHovered) : 
                      ImGui.GetColorU32(new Vector4(0.3f, 0.3f, 0.3f, 0.8f));
@@ -317,7 +317,7 @@ public class CompactUi : WindowMediatorSubscriberBase
         var borderColor = isHovered ? ImGui.GetColorU32(ImGuiCol.Text) : ImGui.GetColorU32(ImGuiCol.Border);
         drawList.AddRect(resizeHandlePos, new Vector2(resizeHandlePos.X + resizeHandleSize.X, resizeHandlePos.Y + resizeHandleSize.Y), borderColor, 3.0f, ImDrawFlags.None, 1.5f);
         
-        // Verstärkte diagonale Linien als Resize-Indikator
+        // Enhanced diagonal lines as resize indicator
         var lineColor = isHovered ? ImGui.GetColorU32(new Vector4(0.8f, 0.8f, 0.8f, 0.0f)) : ImGui.GetColorU32(new Vector4(0.8f, 0.8f, 0.8f, 0.0f));
         for (int i = 0; i < 4; i++)
         {
