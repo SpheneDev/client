@@ -56,8 +56,11 @@ public class SpheneIcon : WindowMediatorSubscriberBase, IDisposable
             PositionCondition = ImGuiCond.FirstUseEver;
         }
         
-        // Always show the icon
-        IsOpen = true;
+        // Show icon based on configuration setting
+        IsOpen = _configService.Current.ShowSpheneIcon;
+        
+        // Subscribe to configuration changes
+        _configService.ConfigSave += OnConfigurationChanged;
         
         _logger.LogDebug("SpheneIcon created at position {Position}", _iconPosition);
     }
@@ -271,8 +274,15 @@ public class SpheneIcon : WindowMediatorSubscriberBase, IDisposable
         };
     }
     
+    private void OnConfigurationChanged(object? sender, EventArgs e)
+    {
+        // Update icon visibility when configuration changes
+        IsOpen = _configService.Current.ShowSpheneIcon;
+    }
+    
     public void Dispose()
     {
+        _configService.ConfigSave -= OnConfigurationChanged;
         _mareLogoTexture?.Dispose();
         _logger.LogDebug("SpheneIcon disposed");
     }

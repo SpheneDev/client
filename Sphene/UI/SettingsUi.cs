@@ -881,6 +881,7 @@ public class SettingsUi : WindowMediatorSubscriberBase
 
         ImGui.Separator();
         _uiShared.BigText("UI");
+        var showSpheneIcon = _configService.Current.ShowSpheneIcon;
         var showNameInsteadOfNotes = _configService.Current.ShowCharacterNameInsteadOfNotesForVisible;
         var showVisibleSeparate = _configService.Current.ShowVisibleUsersSeparately;
         var showOfflineSeparate = _configService.Current.ShowOfflineUsersSeparately;
@@ -901,6 +902,13 @@ public class SettingsUi : WindowMediatorSubscriberBase
         var groupUpSyncshells = _configService.Current.GroupUpSyncshells;
         var groupInVisible = _configService.Current.ShowSyncshellUsersInVisible;
         var syncshellOfflineSeparate = _configService.Current.ShowSyncshellOfflineUsersSeparately;
+
+        if (ImGui.Checkbox("Show Sphene Icon", ref showSpheneIcon))
+        {
+            _configService.Current.ShowSpheneIcon = showSpheneIcon;
+            _configService.Save();
+        }
+        _uiShared.DrawHelpText("This will show or hide the Sphene icon that can be used to open the main window.");
 
         if (ImGui.Checkbox("Enable Game Right Click Menu Entries", ref enableRightClickMenu))
         {
