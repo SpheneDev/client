@@ -191,7 +191,7 @@ public class DownloadUi : WindowMediatorSubscriberBase
                     try
                     {
                         using var _ = _uiShared.UidFont.Push();
-                        var uploadText = "Uploading";
+                        var uploadText = "Transferring";
 
                         var textSize = ImGui.CalcTextSize(uploadText);
 

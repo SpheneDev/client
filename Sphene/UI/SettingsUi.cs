@@ -332,7 +332,7 @@ public class SettingsUi : WindowMediatorSubscriberBase
             _configService.Current.ShowUploadingBigText = showUploadingBigText;
             _configService.Save();
         }
-        _uiShared.DrawHelpText("This will render an 'Uploading' text in a larger font.");
+        _uiShared.DrawHelpText("This will render an 'Transferring' text in a larger font.");
 
         ImGui.Unindent();
 

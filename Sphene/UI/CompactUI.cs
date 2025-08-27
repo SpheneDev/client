@@ -191,7 +191,7 @@ public class CompactUi : WindowMediatorSubscriberBase
         // Single unified card layout with integrated controls and header buttons
         SpheneUIEnhancements.DrawSpheneCard("Sphene Control Panel", () => {
             // Network Identity Section
-            ImGui.TextColored(SpheneColors.SpheneGold, "Network Identity");
+            ImGui.TextColored(SpheneColors.SpheneGold, "Regulator ID");
             ImGui.Separator();
             DrawUIDContent();
             
