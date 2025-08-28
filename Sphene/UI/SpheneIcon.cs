@@ -27,6 +27,8 @@ public class SpheneIcon : WindowMediatorSubscriberBase, IDisposable
     private Vector2 _iconPosition = new Vector2(100, 100);
     private bool _hasStoredIconPosition = false;
     private bool _isDragging = false;
+    private bool _wasClicked = false;
+    private Vector2 _clickStartPos;
     private IDalamudTextureWrap? _mareLogoTexture;
     
     
@@ -48,7 +50,7 @@ public class SpheneIcon : WindowMediatorSubscriberBase, IDisposable
         
         // Set window flags for a draggable icon
         Flags = ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse |
-                ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoBackground;
+                ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoBackground | ImGuiWindowFlags.NoMove;
         
         if (_hasStoredIconPosition)
         {
@@ -109,32 +111,62 @@ public class SpheneIcon : WindowMediatorSubscriberBase, IDisposable
         // Draw status indicator
         DrawStatusIndicator(drawList, iconPos, iconSize);
         
-        // Handle dragging and clicking
-        ImGui.SetCursorPos(new Vector2(padding, padding));
-        ImGui.InvisibleButton("##sphene_icon", new Vector2(iconSize, iconSize));
+        // Handle dragging and clicking for the entire window
+        ImGui.SetCursorPos(new Vector2(0, 0));
+        ImGui.InvisibleButton("##sphene_icon_window", new Vector2(windowSize, windowSize));
         
-        // Handle dragging
-        if (ImGui.IsItemActive() && ImGui.IsMouseDragging(ImGuiMouseButton.Left))
+        // Handle mouse interactions
+        if (ImGui.IsItemActive())
         {
-            _isDragging = true;
-            var mouseDelta = ImGui.GetMouseDragDelta(ImGuiMouseButton.Left);
-            var newPos = new Vector2(_iconPosition.X + mouseDelta.X, _iconPosition.Y + mouseDelta.Y);
-            ImGui.SetWindowPos(newPos);
-            ImGui.ResetMouseDragDelta(ImGuiMouseButton.Left);
+            if (ImGui.IsMouseClicked(ImGuiMouseButton.Left))
+            {
+                _wasClicked = true;
+                _clickStartPos = ImGui.GetMousePos();
+            }
+            
+            // Check if mouse is being dragged
+            if (ImGui.IsMouseDragging(ImGuiMouseButton.Left, 3.0f)) // 3 pixel threshold for drag
+            {
+                if (!_isDragging)
+                {
+                    _isDragging = true;
+                    _wasClicked = false; // Cancel click if we start dragging
+                    _iconPosition = ImGui.GetWindowPos(); // Update current position when drag starts
+                }
+                
+                var mouseDelta = ImGui.GetMouseDragDelta(ImGuiMouseButton.Left);
+                var newPos = new Vector2(_iconPosition.X + mouseDelta.X, _iconPosition.Y + mouseDelta.Y);
+                ImGui.SetWindowPos(newPos);
+                _iconPosition = newPos; // Update stored position during drag
+                ImGui.ResetMouseDragDelta(ImGuiMouseButton.Left);
+            }
         }
-        // Save position when drag ends
-        else if (ImGui.IsItemDeactivated() && _isDragging)
+        
+        // Handle mouse release
+        if (ImGui.IsItemDeactivated())
         {
-            _isDragging = false;
-            _iconPosition = ImGui.GetWindowPos();
-            _hasStoredIconPosition = true;
-            SaveIconPositionToConfig();
-            _logger.LogDebug("Icon position saved: {Position}", _iconPosition);
-        }
-        // Handle click to toggle main window (only if not dragging)
-        else if (ImGui.IsItemClicked() && !_isDragging)
-        {
-            ToggleMainWindow();
+            if (_isDragging)
+            {
+                // Save position when drag ends
+                _isDragging = false;
+                _iconPosition = ImGui.GetWindowPos();
+                _hasStoredIconPosition = true;
+                SaveIconPositionToConfig();
+                _logger.LogDebug("Icon position saved: {Position}", _iconPosition);
+            }
+            else if (_wasClicked)
+            {
+                // Handle click to toggle main window (only if not dragging)
+                var currentMousePos = ImGui.GetMousePos();
+                var dragDistance = Vector2.Distance(_clickStartPos, currentMousePos);
+                
+                if (dragDistance < 3.0f) // Only trigger click if mouse didn't move much
+                {
+                    ToggleMainWindow();
+                }
+            }
+            
+            _wasClicked = false;
         }
         
         // Show tooltip
