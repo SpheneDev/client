@@ -22,7 +22,7 @@ namespace Sphene.WebAPI;
 public sealed partial class ApiController : DisposableMediatorSubscriberBase, IMareHubClient
 {
     public const string MainServer = "Sphene Server";
-    public const string MainServiceUri = "ws://sphene.dynip.online:6000";
+    public const string MainServiceUri = "ws://sphene.online:6000";
 
     private readonly DalamudUtilService _dalamudUtil;
     private readonly HubFactory _hubFactory;
