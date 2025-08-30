@@ -158,6 +158,45 @@ public class DrawUserPair
             _ = _apiController.UserSetPairPermissions(new UserPermissionsDto(_pair.UserData, permissions));
         }
         UiSharedService.AttachToolTip("Changes VFX sync permissions with this user." + (individual ? individualText : string.Empty));
+
+        ImGui.Separator();
+        ImGui.TextUnformatted("Performance Functions");
+        
+        // Check if user is already whitelisted
+        var userIdentifier = !string.IsNullOrEmpty(_pair.UserData.Alias) ? _pair.UserData.Alias : _pair.UserData.UID;
+        bool isWhitelisted = _performanceConfigService.Current.UIDsToIgnore.Contains(userIdentifier, StringComparer.Ordinal) ||
+                            _performanceConfigService.Current.UIDsToIgnore.Contains(_pair.UserData.UID, StringComparer.Ordinal);
+        
+        if (!isWhitelisted)
+        {
+            if (_uiSharedService.IconTextButton(FontAwesomeIcon.Shield, "Add to Performance Whitelist", _menuWidth, true))
+            {
+                // Use alias if available, otherwise use UID
+                var identifierToAdd = !string.IsNullOrEmpty(_pair.UserData.Alias) ? _pair.UserData.Alias : _pair.UserData.UID;
+                
+                if (!_performanceConfigService.Current.UIDsToIgnore.Contains(identifierToAdd, StringComparer.Ordinal))
+                {
+                    _performanceConfigService.Current.UIDsToIgnore.Add(identifierToAdd);
+                    _performanceConfigService.Save();
+                }
+                ImGui.CloseCurrentPopup();
+            }
+            UiSharedService.AttachToolTip("Adds this user to the performance whitelist to ignore all performance warnings and auto-pause operations." + Environment.NewLine + 
+                                        "Will use: " + (!string.IsNullOrEmpty(_pair.UserData.Alias) ? _pair.UserData.Alias : _pair.UserData.UID));
+        }
+        else
+        {
+            if (_uiSharedService.IconTextButton(FontAwesomeIcon.ShieldAlt, "Remove from Performance Whitelist", _menuWidth, true))
+            {
+                // Remove both alias and UID if they exist in the list
+                _performanceConfigService.Current.UIDsToIgnore.RemoveAll(uid => 
+                    string.Equals(uid, _pair.UserData.Alias, StringComparison.Ordinal) || 
+                    string.Equals(uid, _pair.UserData.UID, StringComparison.Ordinal));
+                _performanceConfigService.Save();
+                ImGui.CloseCurrentPopup();
+            }
+            UiSharedService.AttachToolTip("Removes this user from the performance whitelist.");
+        }
     }
 
     private void DrawIndividualMenu()

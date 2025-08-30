@@ -835,87 +835,105 @@ public class SettingsUi : WindowMediatorSubscriberBase
         }
 
         _lastTab = "General";
-        //UiSharedService.FontText("Experimental", _uiShared.UidFont);
-        //ImGui.Separator();
 
-        _uiShared.BigText("Notes");
-        if (_uiShared.IconTextButton(FontAwesomeIcon.StickyNote, "Export all your user notes to clipboard"))
+        // User Management Section
+        if (ImGui.CollapsingHeader("User Management", ImGuiTreeNodeFlags.DefaultOpen))
         {
-            ImGui.SetClipboardText(UiSharedService.GetNotes(_pairManager.DirectPairs.UnionBy(_pairManager.GroupPairs.SelectMany(p => p.Value), p => p.UserData, UserDataComparer.Instance).ToList()));
-        }
-        if (_uiShared.IconTextButton(FontAwesomeIcon.FileImport, "Import notes from clipboard"))
-        {
-            _notesSuccessfullyApplied = null;
-            var notes = ImGui.GetClipboardText();
-            _notesSuccessfullyApplied = _uiShared.ApplyNotesFromClipboard(notes, _overwriteExistingLabels);
+            ImGuiHelpers.ScaledDummy(5);
+            
+            _uiShared.BigText("Notes Management");
+            if (_uiShared.IconTextButton(FontAwesomeIcon.StickyNote, "Export all your user notes to clipboard"))
+            {
+                ImGui.SetClipboardText(UiSharedService.GetNotes(_pairManager.DirectPairs.UnionBy(_pairManager.GroupPairs.SelectMany(p => p.Value), p => p.UserData, UserDataComparer.Instance).ToList()));
+            }
+            if (_uiShared.IconTextButton(FontAwesomeIcon.FileImport, "Import notes from clipboard"))
+            {
+                _notesSuccessfullyApplied = null;
+                var notes = ImGui.GetClipboardText();
+                _notesSuccessfullyApplied = _uiShared.ApplyNotesFromClipboard(notes, _overwriteExistingLabels);
+            }
+
+            ImGui.SameLine();
+            ImGui.Checkbox("Overwrite existing notes", ref _overwriteExistingLabels);
+            _uiShared.DrawHelpText("If this option is selected all already existing notes for UIDs will be overwritten by the imported notes.");
+            
+            if (_notesSuccessfullyApplied.HasValue && _notesSuccessfullyApplied.Value)
+            {
+                UiSharedService.ColorTextWrapped("User Notes successfully imported", ImGuiColors.HealerGreen);
+            }
+            else if (_notesSuccessfullyApplied.HasValue && !_notesSuccessfullyApplied.Value)
+            {
+                UiSharedService.ColorTextWrapped("Attempt to import notes from clipboard failed. Check formatting and try again", ImGuiColors.DalamudRed);
+            }
+
+            ImGuiHelpers.ScaledDummy(10);
+            
+            var openPopupOnAddition = _configService.Current.OpenPopupOnAdd;
+            if (ImGui.Checkbox("Open Notes Popup on user addition", ref openPopupOnAddition))
+            {
+                _configService.Current.OpenPopupOnAdd = openPopupOnAddition;
+                _configService.Save();
+            }
+            _uiShared.DrawHelpText("This will open a popup that allows you to set the notes for a user after successfully adding them to your individual pairs.");
+
+            var autoPopulateNotes = _configService.Current.AutoPopulateEmptyNotesFromCharaName;
+            if (ImGui.Checkbox("Automatically populate notes using player names", ref autoPopulateNotes))
+            {
+                _configService.Current.AutoPopulateEmptyNotesFromCharaName = autoPopulateNotes;
+                _configService.Save();
+            }
+            _uiShared.DrawHelpText("This will automatically populate user notes using the first encountered player name if the note was not set prior");
+            
+            ImGuiHelpers.ScaledDummy(10);
         }
 
-        ImGui.SameLine();
-        ImGui.Checkbox("Overwrite existing notes", ref _overwriteExistingLabels);
-        _uiShared.DrawHelpText("If this option is selected all already existing notes for UIDs will be overwritten by the imported notes.");
-        if (_notesSuccessfullyApplied.HasValue && _notesSuccessfullyApplied.Value)
+        // UI Display Settings Section
+        if (ImGui.CollapsingHeader("UI Display Settings", ImGuiTreeNodeFlags.DefaultOpen))
         {
-            UiSharedService.ColorTextWrapped("User Notes successfully imported", ImGuiColors.HealerGreen);
-        }
-        else if (_notesSuccessfullyApplied.HasValue && !_notesSuccessfullyApplied.Value)
-        {
-            UiSharedService.ColorTextWrapped("Attempt to import notes from clipboard failed. Check formatting and try again", ImGuiColors.DalamudRed);
-        }
+            ImGuiHelpers.ScaledDummy(5);
+            
+            var showSpheneIcon = _configService.Current.ShowSpheneIcon;
+            var showNameInsteadOfNotes = _configService.Current.ShowCharacterNameInsteadOfNotesForVisible;
+            var showVisibleSeparate = _configService.Current.ShowVisibleUsersSeparately;
+            var showOfflineSeparate = _configService.Current.ShowOfflineUsersSeparately;
+            var showProfiles = _configService.Current.ProfilesShow;
+            var showNsfwProfiles = _configService.Current.ProfilesAllowNsfw;
+            var profileDelay = _configService.Current.ProfileDelay;
+            var profileOnRight = _configService.Current.ProfilePopoutRight;
+            var enableRightClickMenu = _configService.Current.EnableRightClickMenus;
+            var enableDtrEntry = _configService.Current.EnableDtrEntry;
+            var showUidInDtrTooltip = _configService.Current.ShowUidInDtrTooltip;
+            var preferNoteInDtrTooltip = _configService.Current.PreferNoteInDtrTooltip;
+            var useColorsInDtr = _configService.Current.UseColorsInDtr;
+            var dtrColorsDefault = _configService.Current.DtrColorsDefault;
+            var dtrColorsNotConnected = _configService.Current.DtrColorsNotConnected;
+            var dtrColorsPairsInRange = _configService.Current.DtrColorsPairsInRange;
+            var preferNotesInsteadOfName = _configService.Current.PreferNotesOverNamesForVisible;
+            var useFocusTarget = _configService.Current.UseFocusTarget;
+            var groupUpSyncshells = _configService.Current.GroupUpSyncshells;
+            var groupInVisible = _configService.Current.ShowSyncshellUsersInVisible;
+            var syncshellOfflineSeparate = _configService.Current.ShowSyncshellOfflineUsersSeparately;
 
-        var openPopupOnAddition = _configService.Current.OpenPopupOnAdd;
+            // Basic UI Elements
+            _uiShared.BigText("Basic Interface");
+            if (ImGui.Checkbox("Show Sphene Icon", ref showSpheneIcon))
+            {
+                _configService.Current.ShowSpheneIcon = showSpheneIcon;
+                _configService.Save();
+            }
+            _uiShared.DrawHelpText("This will show or hide the Sphene icon that can be used to open the main window.");
 
-        if (ImGui.Checkbox("Open Notes Popup on user addition", ref openPopupOnAddition))
-        {
-            _configService.Current.OpenPopupOnAdd = openPopupOnAddition;
-            _configService.Save();
-        }
-        _uiShared.DrawHelpText("This will open a popup that allows you to set the notes for a user after successfully adding them to your individual pairs.");
-
-        var autoPopulateNotes = _configService.Current.AutoPopulateEmptyNotesFromCharaName;
-        if (ImGui.Checkbox("Automatically populate notes using player names", ref autoPopulateNotes))
-        {
-            _configService.Current.AutoPopulateEmptyNotesFromCharaName = autoPopulateNotes;
-            _configService.Save();
-        }
-        _uiShared.DrawHelpText("This will automatically populate user notes using the first encountered player name if the note was not set prior");
-
-        ImGui.Separator();
-        _uiShared.BigText("UI");
-        var showSpheneIcon = _configService.Current.ShowSpheneIcon;
-        var showNameInsteadOfNotes = _configService.Current.ShowCharacterNameInsteadOfNotesForVisible;
-        var showVisibleSeparate = _configService.Current.ShowVisibleUsersSeparately;
-        var showOfflineSeparate = _configService.Current.ShowOfflineUsersSeparately;
-        var showProfiles = _configService.Current.ProfilesShow;
-        var showNsfwProfiles = _configService.Current.ProfilesAllowNsfw;
-        var profileDelay = _configService.Current.ProfileDelay;
-        var profileOnRight = _configService.Current.ProfilePopoutRight;
-        var enableRightClickMenu = _configService.Current.EnableRightClickMenus;
-        var enableDtrEntry = _configService.Current.EnableDtrEntry;
-        var showUidInDtrTooltip = _configService.Current.ShowUidInDtrTooltip;
-        var preferNoteInDtrTooltip = _configService.Current.PreferNoteInDtrTooltip;
-        var useColorsInDtr = _configService.Current.UseColorsInDtr;
-        var dtrColorsDefault = _configService.Current.DtrColorsDefault;
-        var dtrColorsNotConnected = _configService.Current.DtrColorsNotConnected;
-        var dtrColorsPairsInRange = _configService.Current.DtrColorsPairsInRange;
-        var preferNotesInsteadOfName = _configService.Current.PreferNotesOverNamesForVisible;
-        var useFocusTarget = _configService.Current.UseFocusTarget;
-        var groupUpSyncshells = _configService.Current.GroupUpSyncshells;
-        var groupInVisible = _configService.Current.ShowSyncshellUsersInVisible;
-        var syncshellOfflineSeparate = _configService.Current.ShowSyncshellOfflineUsersSeparately;
-
-        if (ImGui.Checkbox("Show Sphene Icon", ref showSpheneIcon))
-        {
-            _configService.Current.ShowSpheneIcon = showSpheneIcon;
-            _configService.Save();
-        }
-        _uiShared.DrawHelpText("This will show or hide the Sphene icon that can be used to open the main window.");
-
-        if (ImGui.Checkbox("Enable Game Right Click Menu Entries", ref enableRightClickMenu))
-        {
-            _configService.Current.EnableRightClickMenus = enableRightClickMenu;
-            _configService.Save();
-        }
-        _uiShared.DrawHelpText("This will add Sphene related right click menu entries in the game UI on paired players.");
+            if (ImGui.Checkbox("Enable Game Right Click Menu Entries", ref enableRightClickMenu))
+            {
+                _configService.Current.EnableRightClickMenus = enableRightClickMenu;
+                _configService.Save();
+            }
+            _uiShared.DrawHelpText("This will add Sphene related right click menu entries in the game UI on paired players.");
+            
+            ImGuiHelpers.ScaledDummy(10);
+            
+            // Server Info Bar Settings
+            _uiShared.BigText("Server Info Bar");
 
         if (ImGui.Checkbox("Display status and visible pair count in Server Info Bar", ref enableDtrEntry))
         {
@@ -969,7 +987,11 @@ public class SettingsUi : WindowMediatorSubscriberBase
                 }
             }
         }
-
+        
+        ImGuiHelpers.ScaledDummy(10);
+        
+        // Visibility Groups Settings
+        _uiShared.BigText("Visibility Groups");
         if (ImGui.Checkbox("Show separate Visible group", ref showVisibleSeparate))
         {
             _configService.Current.ShowVisibleUsersSeparately = showVisibleSeparate;
@@ -1008,6 +1030,10 @@ public class SettingsUi : WindowMediatorSubscriberBase
             }
         }
 
+        ImGuiHelpers.ScaledDummy(10);
+        
+        // Syncshell Settings
+        _uiShared.BigText("Syncshell Settings");
         if (ImGui.Checkbox("Group up all syncshells in one folder", ref groupUpSyncshells))
         {
             _configService.Current.GroupUpSyncshells = groupUpSyncshells;
@@ -1015,7 +1041,11 @@ public class SettingsUi : WindowMediatorSubscriberBase
             Mediator.Publish(new RefreshUiMessage());
         }
         _uiShared.DrawHelpText("This will group up all Syncshells in a special 'All Syncshells' folder in the main UI.");
-
+        
+        ImGuiHelpers.ScaledDummy(10);
+        
+        // Display Preferences
+        _uiShared.BigText("Display Preferences");
         if (ImGui.Checkbox("Show player name for visible players", ref showNameInsteadOfNotes))
         {
             _configService.Current.ShowCharacterNameInsteadOfNotesForVisible = showNameInsteadOfNotes;
@@ -1041,7 +1071,11 @@ public class SettingsUi : WindowMediatorSubscriberBase
             _configService.Current.UseFocusTarget = useFocusTarget;
             _configService.Save();
         }
-
+        
+        ImGuiHelpers.ScaledDummy(10);
+        
+        // Profile Settings
+        _uiShared.BigText("Profile Settings");
         if (ImGui.Checkbox("Show Sphene Profiles on Hover", ref showProfiles))
         {
             Mediator.Publish(new ClearProfileDataMessage());
@@ -1073,14 +1107,20 @@ public class SettingsUi : WindowMediatorSubscriberBase
             _configService.Save();
         }
         _uiShared.DrawHelpText("Will show profiles that have the NSFW tag enabled");
-
-        ImGui.Separator();
-
-        var disableOptionalPluginWarnings = _configService.Current.DisableOptionalPluginWarnings;
-        var onlineNotifs = _configService.Current.ShowOnlineNotifications;
-        var onlineNotifsPairsOnly = _configService.Current.ShowOnlineNotificationsOnlyForIndividualPairs;
-        var onlineNotifsNamedOnly = _configService.Current.ShowOnlineNotificationsOnlyForNamedPairs;
-        _uiShared.BigText("Notifications");
+        }
+        
+        
+        // Notifications Section
+        if (ImGui.CollapsingHeader("Notifications", ImGuiTreeNodeFlags.DefaultOpen))
+        {
+            ImGuiHelpers.ScaledDummy(5);
+            
+            var disableOptionalPluginWarnings = _configService.Current.DisableOptionalPluginWarnings;
+            var onlineNotifs = _configService.Current.ShowOnlineNotifications;
+            var onlineNotifsPairsOnly = _configService.Current.ShowOnlineNotificationsOnlyForIndividualPairs;
+            var onlineNotifsNamedOnly = _configService.Current.ShowOnlineNotificationsOnlyForNamedPairs;
+            
+            _uiShared.BigText("Notification Types");
 
         _uiShared.DrawCombo("Info Notification Display##settingsUi", (NotificationLocation[])Enum.GetValues(typeof(NotificationLocation)), (i) => i.ToString(),
         (i) =>
@@ -1144,6 +1184,7 @@ public class SettingsUi : WindowMediatorSubscriberBase
             _configService.Save();
         }
         _uiShared.DrawHelpText("Enabling this will only show online notifications (type: Info) for pairs where you have set an individual note.");
+        }
     }
 
     private void DrawPerformance()
@@ -1268,7 +1309,7 @@ public class SettingsUi : WindowMediatorSubscriberBase
         }
         _uiShared.DrawHelpText("Hint: UIDs are case sensitive.");
         var playerList = _playerPerformanceConfigService.Current.UIDsToIgnore;
-        ImGui.SetNextItemWidth(200 * ImGuiHelpers.GlobalScale);
+        ImGui.SetNextItemWidth(400 * ImGuiHelpers.GlobalScale);
         using (var lb = ImRaii.ListBox("UID whitelist"))
         {
             if (lb)
@@ -1276,7 +1317,28 @@ public class SettingsUi : WindowMediatorSubscriberBase
                 for (int i = 0; i < playerList.Count; i++)
                 {
                     bool shouldBeSelected = _selectedEntry == i;
-                    if (ImGui.Selectable(playerList[i] + "##" + i, shouldBeSelected))
+                    var identifier = playerList[i];
+                    
+                    // Try to get user note by finding the pair
+                    var pair = _pairManager.GetPairByUID(identifier);
+                    if (pair == null)
+                    {
+                        // If not found by UID, try to find by alias
+                        pair = _pairManager.DirectPairs.FirstOrDefault(p => 
+                            string.Equals(p.UserData.Alias, identifier, StringComparison.Ordinal));
+                    }
+                    
+                    var displayText = identifier;
+                    if (pair != null)
+                    {
+                        var note = pair.GetNote();
+                        if (!string.IsNullOrEmpty(note))
+                        {
+                            displayText = $"{identifier} ({note})";
+                        }
+                    }
+                    
+                    if (ImGui.Selectable(displayText + "##" + i, shouldBeSelected))
                     {
                         _selectedEntry = i;
                     }

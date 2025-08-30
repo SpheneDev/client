@@ -8,6 +8,7 @@ using Sphene.PlayerData.Factories;
 using Sphene.PlayerData.Handlers;
 using Sphene.Services.Mediator;
 using Sphene.Services.ServerConfiguration;
+using Sphene.SpheneConfiguration;
 using Sphene.Utils;
 using Microsoft.Extensions.Logging;
 
@@ -20,17 +21,20 @@ public class Pair
     private readonly ILogger<Pair> _logger;
     private readonly SpheneMediator _mediator;
     private readonly ServerConfigurationManager _serverConfigurationManager;
+    private readonly PlayerPerformanceConfigService _playerPerformanceConfigService;
     private CancellationTokenSource _applicationCts = new();
     private OnlineUserIdentDto? _onlineUserIdentDto = null;
 
     public Pair(ILogger<Pair> logger, UserFullPairDto userPair, PairHandlerFactory cachedPlayerFactory,
-        SpheneMediator mediator, ServerConfigurationManager serverConfigurationManager)
+        SpheneMediator mediator, ServerConfigurationManager serverConfigurationManager,
+        PlayerPerformanceConfigService playerPerformanceConfigService)
     {
         _logger = logger;
         UserPair = userPair;
         _cachedPlayerFactory = cachedPlayerFactory;
         _mediator = mediator;
         _serverConfigurationManager = serverConfigurationManager;
+        _playerPerformanceConfigService = playerPerformanceConfigService;
     }
 
     public bool HasCachedPlayer => CachedPlayer != null && !string.IsNullOrEmpty(CachedPlayer.PlayerName) && _onlineUserIdentDto != null;
@@ -62,10 +66,19 @@ public class Pair
         SeStringBuilder seStringBuilder2 = new();
         SeStringBuilder seStringBuilder3 = new();
         SeStringBuilder seStringBuilder4 = new();
+        SeStringBuilder seStringBuilder5 = new();
         var openProfileSeString = seStringBuilder.AddText("Open Profile").Build();
         var reapplyDataSeString = seStringBuilder2.AddText("Reapply last data").Build();
         var cyclePauseState = seStringBuilder3.AddText("Cycle pause state").Build();
         var changePermissions = seStringBuilder4.AddText("Change Permissions").Build();
+        
+        // Performance whitelist functionality
+        var config = _playerPerformanceConfigService.Current;
+        var userIdentifier = !string.IsNullOrEmpty(UserPair.User.Alias) ? UserPair.User.Alias : UserData.UID;
+        var isWhitelisted = config.UIDsToIgnore.Contains(UserData.UID);
+        var whitelistText = isWhitelisted ? "Remove from Performance Whitelist" : "Add to Performance Whitelist";
+        var performanceWhitelistSeString = seStringBuilder5.AddText(whitelistText).Build();
+        
         args.AddMenuItem(new MenuItem()
         {
             Name = openProfileSeString,
@@ -97,6 +110,30 @@ public class Pair
         {
             Name = cyclePauseState,
             OnClicked = (a) => _mediator.Publish(new CyclePauseMessage(UserData)),
+            UseDefaultPrefix = false,
+            PrefixChar = 'S',
+            PrefixColor = 500
+        });
+        
+        // Add performance whitelist menu item
+        args.AddMenuItem(new MenuItem()
+        {
+            Name = performanceWhitelistSeString,
+            OnClicked = (a) => {
+                if (isWhitelisted)
+                {
+                    // Remove from whitelist
+                    config.UIDsToIgnore.Remove(UserData.UID);
+                    _logger.LogInformation("Removed {identifier} ({uid}) from performance whitelist", userIdentifier, UserData.UID);
+                }
+                else
+                {
+                    // Add to whitelist with identifier for reference
+                    config.UIDsToIgnore.Add(UserData.UID);
+                    _logger.LogInformation("Added {identifier} ({uid}) to performance whitelist", userIdentifier, UserData.UID);
+                }
+                _playerPerformanceConfigService.Save();
+            },
             UseDefaultPrefix = false,
             PrefixChar = 'S',
             PrefixColor = 500

@@ -3,9 +3,9 @@
   <PropertyGroup>
     <Authors></Authors>
     <Company></Company>
-    <Version>0.0.11</Version>
-    <AssemblyVersion>0.0.11.0</AssemblyVersion>
-    <FileVersion>0.0.11.0</FileVersion>
+    <Version>0.0.15</Version>
+    <AssemblyVersion>0.0.15.0</AssemblyVersion>
+    <FileVersion>0.0.15.0</FileVersion>
     <Description></Description>
     <Copyright></Copyright>
     <PackageProjectUrl>https://github.com/SpheneDev/client</PackageProjectUrl>
@@ -21,6 +21,13 @@
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <CopyLocalLockfileAssemblies>true</CopyLocalLockfileAssemblies>
     <AssemblyName>Sphene</AssemblyName>
+  </PropertyGroup>
+
+  <!-- Release configuration to hide source file paths -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+    <PathMap>$(MSBuildProjectDirectory)=.</PathMap>
   </PropertyGroup>
 
   <ItemGroup>
