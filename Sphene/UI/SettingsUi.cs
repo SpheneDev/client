@@ -1394,13 +1394,21 @@ public class SettingsUi : WindowMediatorSubscriberBase
             + "If you do not wish to participate in the statistical census, untick this box and reconnect to the server.");
         ImGuiHelpers.ScaledDummy(new Vector2(10, 10));
 
-        var idx = _uiShared.DrawServiceSelection();
-        if (_lastSelectedServerIndex != idx)
+        int idx = 0;
+        if (_apiController.IsAdmin || _apiController.IsModerator)
         {
-            _uiShared.ResetOAuthTasksState();
-            _secretKeysConversionCts = _secretKeysConversionCts.CancelRecreate();
-            _secretKeysConversionTask = null;
-            _lastSelectedServerIndex = idx;
+            idx = _uiShared.DrawServiceSelection();
+            if (_lastSelectedServerIndex != idx)
+            {
+                _uiShared.ResetOAuthTasksState();
+                _secretKeysConversionCts = _secretKeysConversionCts.CancelRecreate();
+                _secretKeysConversionTask = null;
+                _lastSelectedServerIndex = idx;
+            }
+        }
+        else
+        {
+            idx = _serverConfigurationManager.CurrentServerIndex;
         }
 
         ImGuiHelpers.ScaledDummy(new Vector2(10, 10));
@@ -1685,7 +1693,7 @@ public class SettingsUi : WindowMediatorSubscriberBase
                 ImGui.EndTabItem();
             }
 
-            if (ImGui.BeginTabItem("Service Configuration"))
+            if ((_apiController.IsAdmin || _apiController.IsModerator) && ImGui.BeginTabItem("Service Configuration"))
             {
                 var serverName = selectedServer.ServerName;
                 var serverUri = selectedServer.ServerUri;
@@ -1932,20 +1940,20 @@ public class SettingsUi : WindowMediatorSubscriberBase
 
     private void DrawSettingsContent()
     {
-        if (_apiController.ServerState is ServerState.Connected)
-        {
-            ImGui.TextUnformatted("Service " + _serverConfigurationManager.CurrentServer!.ServerName + ":");
-            ImGui.SameLine();
-            ImGui.TextColored(ImGuiColors.ParsedGreen, "Available");
-            ImGui.SameLine();
-            ImGui.TextUnformatted("(");
-            ImGui.SameLine();
-            ImGui.TextColored(ImGuiColors.ParsedGreen, _apiController.OnlineUsers.ToString(CultureInfo.InvariantCulture));
-            ImGui.SameLine();
-            ImGui.TextUnformatted("Users Online");
-            ImGui.SameLine();
-            ImGui.TextUnformatted(")");
-        }
+        //if (_apiController.ServerState is ServerState.Connected)
+        //{
+        //    ImGui.TextUnformatted("Service " + _serverConfigurationManager.CurrentServer!.ServerName + ":");
+        //    ImGui.SameLine();
+        //    ImGui.TextColored(ImGuiColors.ParsedGreen, "Available");
+        //    ImGui.SameLine();
+        //    ImGui.TextUnformatted("(");
+        //    ImGui.SameLine();
+        //    ImGui.TextColored(ImGuiColors.ParsedGreen, _apiController.OnlineUsers.ToString(CultureInfo.InvariantCulture));
+        //    ImGui.SameLine();
+        //    ImGui.TextUnformatted("Users Online");
+        //    ImGui.SameLine();
+        //    ImGui.TextUnformatted(")");
+        //}
 
         ImGui.AlignTextToFramePadding();
         ImGui.TextUnformatted("Community and Support:");

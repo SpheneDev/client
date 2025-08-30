@@ -870,7 +870,7 @@ public partial class UiSharedService : DisposableMediatorSubscriberBase
             }
         }
 
-        if (ImGui.TreeNode("Add Custom Service"))
+        if ((_apiController.IsAdmin || _apiController.IsModerator) && ImGui.TreeNode("Add Custom Service"))
         {
             ImGui.SetNextItemWidth(250);
             ImGui.InputText("Custom Service URI", ref _customServerUri, 255);

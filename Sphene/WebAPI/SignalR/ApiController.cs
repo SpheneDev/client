@@ -80,6 +80,10 @@ public sealed partial class ApiController : DisposableMediatorSubscriberBase, IM
 
     public bool IsCurrentVersion => (Assembly.GetExecutingAssembly().GetName().Version ?? new Version(0, 0, 0, 0)) >= (_connectionDto?.CurrentClientVersion ?? new Version(0, 0, 0, 0));
 
+    public bool IsAdmin => _connectionDto?.IsAdmin ?? false;
+
+    public bool IsModerator => _connectionDto?.IsModerator ?? false;
+
     public int OnlineUsers => SystemInfoDto.OnlineUsers;
 
     public bool ServerAlive => ServerState is ServerState.Connected or ServerState.RateLimited or ServerState.Unauthorized or ServerState.Disconnected;

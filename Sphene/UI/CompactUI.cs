@@ -140,6 +140,13 @@ public class CompactUi : WindowMediatorSubscriberBase
         };
     }
 
+    public override void PreDraw()
+    {
+        // Apply any pending window resize before the window is drawn
+        SpheneUIEnhancements.ApplyPendingWindowResize("Sphene Control Panel");
+        base.PreDraw();
+    }
+
     protected override void DrawInternal()
     {
         
@@ -228,7 +235,7 @@ public class CompactUi : WindowMediatorSubscriberBase
                 using (ImRaii.PushId("group-user-popup")) _selectPairsForGroupUi.Draw(_pairManager.DirectPairs);
                 using (ImRaii.PushId("grouping-popup")) _selectGroupForPairUi.Draw();
             }
-        }, collapsible: false, maxHeight: null, headerButtons: () => {
+        }, false, null, () => {
             // Settings button
             if (_uiSharedService.IconButton(FontAwesomeIcon.Cog))
             {
@@ -253,7 +260,7 @@ public class CompactUi : WindowMediatorSubscriberBase
                 ImGui.Text("Close Sphene");
                 ImGui.EndTooltip();
             }
-        });
+        }, true, SizeConstraints?.MinimumSize, SizeConstraints?.MaximumSize);
 
         if (_configService.Current.OpenPopupOnAdd && _pairManager.LastAddedUser != null)
         {
@@ -286,47 +293,7 @@ public class CompactUi : WindowMediatorSubscriberBase
             ImGui.EndPopup();
         }
 
-        // Add resize handle at bottom-right corner for height adjustment only
-        var windowPos = ImGui.GetWindowPos();
-        var windowSize = ImGui.GetWindowSize();
-        var resizeHandleSize = new Vector2(7, 7); // Larger handle for better visibility
-        var resizeHandlePos = new Vector2(windowPos.X + windowSize.X - resizeHandleSize.X - 5, windowPos.Y + windowSize.Y - resizeHandleSize.Y - 5);
-        
-        ImGui.SetCursorScreenPos(resizeHandlePos);
-        ImGui.InvisibleButton("##resize_handle", resizeHandleSize);
-        
-        if (ImGui.IsItemActive())
-        {
-            var mouseDelta = ImGui.GetIO().MouseDelta;
-            var newHeight = Math.Max(SizeConstraints!.Value.MinimumSize.Y, Math.Min(SizeConstraints!.Value.MaximumSize.Y, windowSize.Y + mouseDelta.Y));
-            ImGui.SetWindowSize(new Vector2(windowSize.X, newHeight));
-        }
-        
-        // Draw resize handle visual indicator - deutlich sichtbarer
-        var drawList = ImGui.GetWindowDrawList();
-        var isHovered = ImGui.IsItemHovered();
-        var isActive = ImGui.IsItemActive();
-        
-        // Background for the handle
-        var bgColor = isActive ? ImGui.GetColorU32(ImGuiCol.ButtonActive) : 
-                     isHovered ? ImGui.GetColorU32(ImGuiCol.ButtonHovered) : 
-                     ImGui.GetColorU32(new Vector4(0.3f, 0.3f, 0.3f, 0.8f));
-        drawList.AddRectFilled(resizeHandlePos, new Vector2(resizeHandlePos.X + resizeHandleSize.X, resizeHandlePos.Y + resizeHandleSize.Y), bgColor, 3.0f);
-        
-        // Rahmen um den Handle
-        var borderColor = isHovered ? ImGui.GetColorU32(ImGuiCol.Text) : ImGui.GetColorU32(ImGuiCol.Border);
-        drawList.AddRect(resizeHandlePos, new Vector2(resizeHandlePos.X + resizeHandleSize.X, resizeHandlePos.Y + resizeHandleSize.Y), borderColor, 3.0f, ImDrawFlags.None, 1.5f);
-        
-        // Enhanced diagonal lines as resize indicator
-        var lineColor = isHovered ? ImGui.GetColorU32(new Vector4(0.8f, 0.8f, 0.8f, 0.0f)) : ImGui.GetColorU32(new Vector4(0.8f, 0.8f, 0.8f, 0.0f));
-        for (int i = 0; i < 4; i++)
-        {
-            var offset = i * 5;
-            var lineStart = new Vector2(resizeHandlePos.X + 6 + offset, resizeHandlePos.Y + 24 - offset);
-            var lineEnd = new Vector2(resizeHandlePos.X + 24 + offset, resizeHandlePos.Y + 6 - offset);
-            drawList.AddLine(lineStart, lineEnd, lineColor, 2.0f);
-        }
-
+        // Track window size changes for mediator notifications
         var pos = ImGui.GetWindowPos();
         var size = ImGui.GetWindowSize();
         if (_lastSize != size || _lastPosition != pos)

@@ -16,6 +16,9 @@ public static class SpheneUIEnhancements
     private static readonly float BorderRadius = 4.0f;
     private static readonly float ShadowOffset = 2.0f;
     
+    // Static dictionary to store resize state per window
+    private static readonly Dictionary<string, Vector2> _pendingWindowSizes = new();
+    
     /// <summary>
     /// Draws a modern card-style container with Sphene theming
     /// </summary>
@@ -132,6 +135,154 @@ public static class SpheneUIEnhancements
                 ImGui.Spacing();
                 ImGui.Spacing();
                 content();
+            }
+        }
+        ImGui.EndChild();
+        ImGui.Spacing();
+    }
+    
+    /// <summary>
+    /// Draws a Sphene-themed card container with modern styling, optional header buttons and resize handle
+    /// </summary>
+    public static void DrawSpheneCard(string title, Action content, bool collapsible = false, float? maxHeight = null, Action headerButtons = null, bool withResizeHandle = false, Vector2? minSize = null, Vector2? maxSize = null)
+    {
+        var cardBg = SpheneColors.ToImGuiColor(SpheneColors.BackgroundMid);
+        var borderColor = SpheneColors.ToImGuiColor(SpheneColors.BorderColor);
+        var headerBg = SpheneColors.ToImGuiColor(SpheneColors.WithAlpha(SpheneColors.DeepCrystal, 0.3f));
+        
+        using var cardStyle = ImRaii.PushColor(ImGuiCol.ChildBg, cardBg);
+        using var borderStyle = ImRaii.PushColor(ImGuiCol.Border, borderColor);
+        using var roundingStyle = ImRaii.PushStyle(ImGuiStyleVar.ChildRounding, 12.0f);
+        using var borderSizeStyle = ImRaii.PushStyle(ImGuiStyleVar.ChildBorderSize, 1.5f);
+        using var paddingStyle = ImRaii.PushStyle(ImGuiStyleVar.WindowPadding, new Vector2(16.0f, 12.0f));
+        
+        // Calculate card size - use maxHeight if specified, otherwise auto-size
+        var cardSize = maxHeight.HasValue ? new Vector2(0, maxHeight.Value) : Vector2.Zero;
+        
+        if (ImGui.BeginChild($"##card_{title}", cardSize, true, ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse))
+        {
+            // Modern card header with background
+            var headerHeight = ImGui.GetTextLineHeight() + 16.0f;
+            var drawList = ImGui.GetWindowDrawList();
+            var headerMin = ImGui.GetCursorScreenPos();
+            var headerMax = new Vector2(headerMin.X + ImGui.GetContentRegionAvail().X, headerMin.Y + headerHeight);
+            
+            drawList.AddRectFilled(headerMin, headerMax, headerBg, 12.0f);
+            
+            ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 8.0f);
+            using var headerColor = ImRaii.PushColor(ImGuiCol.Text, SpheneColors.ToImGuiColor(SpheneColors.CrystalBlue));
+            
+            if (collapsible)
+            {
+                if (ImGui.CollapsingHeader(title, ImGuiTreeNodeFlags.DefaultOpen))
+                {
+                    ImGui.Spacing();
+                    content();
+                }
+            }
+            else
+            {
+                // Header layout with title and buttons
+                ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 8.0f);
+                
+                if (headerButtons != null)
+                {
+                    // Draw title on the left
+                    ImGui.TextUnformatted(title);
+                    
+                    // Draw buttons on the right side of the header
+                    ImGui.SameLine(ImGui.GetContentRegionAvail().X - 40.0f);
+                    ImGui.SetCursorPosY(ImGui.GetCursorPosY() - 0.0f);
+                    headerButtons();
+                }
+                else
+                {
+                    ImGui.TextUnformatted(title);
+                }
+                
+                ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 8.0f);
+                
+                // Subtle separator line
+                var separatorColor = SpheneColors.ToImGuiColor(SpheneColors.WithAlpha(SpheneColors.CrystalBlue, 0.3f));
+                var separatorStart = ImGui.GetCursorScreenPos();
+                var separatorEnd = new Vector2(separatorStart.X + ImGui.GetContentRegionAvail().X - 16.0f, separatorStart.Y);
+                drawList.AddLine(separatorStart, separatorEnd, separatorColor, 1.0f);
+                
+                ImGui.Spacing();
+                ImGui.Spacing();
+                content();
+            }
+            
+            // Add resize handle if requested
+            if (withResizeHandle)
+            {
+                // Get the main window position and size
+                var mainWindowPos = ImGui.GetWindowPos();
+                var mainWindowSize = ImGui.GetWindowSize();
+                var resizeHandleSize = new Vector2(16, 16);
+                var resizeHandlePos = new Vector2(mainWindowPos.X + mainWindowSize.X - resizeHandleSize.X - 4, mainWindowPos.Y + mainWindowSize.Y - resizeHandleSize.Y - 4);
+                
+                ImGui.SetCursorScreenPos(resizeHandlePos);
+                ImGui.InvisibleButton($"##resize_handle_{title}", resizeHandleSize);
+                
+                var isHovered = ImGui.IsItemHovered();
+                var isActive = ImGui.IsItemActive();
+                
+                if (isActive && ImGui.IsMouseDragging(ImGuiMouseButton.Left))
+                {
+                    var mousePos = ImGui.GetIO().MousePos;
+                    
+                    // Calculate new size based on mouse position relative to window position
+                    var newWidth = mousePos.X - mainWindowPos.X + 8; // Add some padding
+                    var newHeight = mousePos.Y - mainWindowPos.Y + 8; // Add some padding
+                    
+                    // Apply size constraints if provided
+                    if (minSize.HasValue)
+                    {
+                        newWidth = Math.Max(minSize.Value.X, newWidth);
+                        newHeight = Math.Max(minSize.Value.Y, newHeight);
+                    }
+                    if (maxSize.HasValue)
+                    {
+                        newWidth = Math.Min(maxSize.Value.X, newWidth);
+                        newHeight = Math.Min(maxSize.Value.Y, newHeight);
+                    }
+                    
+                    // Store the new size to be applied next frame
+                    _pendingWindowSizes[title] = new Vector2(newWidth, newHeight);
+                }
+                
+                // Draw resize handle visual indicator
+                // Corner triangle indicator
+                var triangleColor = isActive ? SpheneColors.ToImGuiColor(SpheneColors.CrystalBlue) :
+                                   isHovered ? SpheneColors.ToImGuiColor(SpheneColors.WithAlpha(SpheneColors.CrystalBlue, 0.8f)) :
+                                   SpheneColors.ToImGuiColor(SpheneColors.WithAlpha(SpheneColors.BorderColor, 0.6f));
+                
+                // Draw corner triangle (larger and more visible)
+                var p1 = new Vector2(resizeHandlePos.X + resizeHandleSize.X - 1, resizeHandlePos.Y + 1);
+                var p2 = new Vector2(resizeHandlePos.X + resizeHandleSize.X - 1, resizeHandlePos.Y + resizeHandleSize.Y - 1);
+                var p3 = new Vector2(resizeHandlePos.X + 1, resizeHandlePos.Y + resizeHandleSize.Y - 1);
+                
+                drawList.AddTriangleFilled(p1, p2, p3, triangleColor);
+                
+                // Add more prominent grip lines
+                var lineColor = SpheneColors.ToImGuiColor(SpheneColors.WithAlpha(SpheneColors.CrystalWhite, isHovered ? 0.6f : 0.4f));
+                for (int i = 0; i < 4; i++)
+                {
+                    var offset = i * 3;
+                    var lineStart = new Vector2(resizeHandlePos.X + resizeHandleSize.X - 4 - offset, resizeHandlePos.Y + 4 + offset);
+                    var lineEnd = new Vector2(resizeHandlePos.X + resizeHandleSize.X - 4 - offset, resizeHandlePos.Y + resizeHandleSize.Y - 4);
+                    drawList.AddLine(lineStart, lineEnd, lineColor, 1.5f);
+                }
+                
+                // Add horizontal grip lines for better visibility
+                for (int i = 0; i < 4; i++)
+                {
+                    var offset = i * 3;
+                    var lineStart = new Vector2(resizeHandlePos.X + 4 + offset, resizeHandlePos.Y + resizeHandleSize.Y - 4 - offset);
+                    var lineEnd = new Vector2(resizeHandlePos.X + resizeHandleSize.X - 4, resizeHandlePos.Y + resizeHandleSize.Y - 4 - offset);
+                    drawList.AddLine(lineStart, lineEnd, lineColor, 1.5f);
+                }
             }
         }
         ImGui.EndChild();
@@ -467,6 +618,20 @@ public static class SpheneUIEnhancements
         drawList.AddLine(separatorStart, separatorEnd, separatorColor, 1.0f);
         
         ImGui.Spacing();
+    }
+    
+    /// <summary>
+    /// Applies pending window size changes that were requested during resize operations
+    /// This should be called before ImGui.Begin() for windows that use resize handles
+    /// </summary>
+    /// <param name="windowName">The name of the window to check for pending resize</param>
+    public static void ApplyPendingWindowResize(string windowName)
+    {
+        if (_pendingWindowSizes.TryGetValue(windowName, out var newSize))
+        {
+            ImGui.SetNextWindowSize(newSize);
+            _pendingWindowSizes.Remove(windowName);
+        }
     }
     
     /// <summary>
